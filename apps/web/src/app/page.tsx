@@ -1,66 +1,86 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+/**
+ * page.tsx — Abyssal Embodied Benchmark demo page (Server Component)
+ *
+ * Generates world metadata server-side for the debug panel.
+ * The WebGL canvas is loaded via DynamicWorldScene (a Client Component
+ * that wraps `next/dynamic` with `ssr: false`).
+ */
 
-export default function Home() {
+import { generateWorldSpec } from "@abyssal/worldgen";
+import DynamicWorldScene from "@/components/DynamicWorldScene";
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+
+/** Demo world seed. Change this to explore different procedural worlds. */
+const DEMO_SEED = 42;
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function BenchmarkPage() {
+  // Generate spec server-side to extract static metadata for the debug panel
+  const spec = generateWorldSpec(DEMO_SEED);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        background: "#020a12",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      {/* ── 3-D canvas fills the viewport ────────────────────────────── */}
+      <div style={{ width: "100%", height: "100%" }}>
+        <DynamicWorldScene seed={DEMO_SEED} />
+      </div>
+
+      {/* ── Debug / metadata overlay ──────────────────────────────────── */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          padding: "12px 16px",
+          background: "rgba(2, 10, 18, 0.72)",
+          borderRight: "1px solid #0d3b52",
+          borderBottom: "1px solid #0d3b52",
+          borderBottomRightRadius: "6px",
+          fontFamily: "monospace",
+          fontSize: "0.72rem",
+          lineHeight: 1.7,
+          color: "#4a9aba",
+          userSelect: "none",
+          pointerEvents: "none",
+        }}
+      >
+        <div style={{ color: "#00ffa0", fontWeight: "bold", marginBottom: 4 }}>
+          ABYSSAL BENCHMARK
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div>
+          <span style={{ color: "#2a6a9e" }}>version  </span>
+          {spec.benchmarkVersion}
         </div>
-      </main>
+        <div>
+          <span style={{ color: "#2a6a9e" }}>seed     </span>
+          {spec.worldSeed}
+        </div>
+        <div>
+          <span style={{ color: "#2a6a9e" }}>radius   </span>
+          {spec.worldRadius} m
+        </div>
+        <div>
+          <span style={{ color: "#2a6a9e" }}>obs      </span>
+          {spec.obstacles.count} (obstacleSeed {spec.obstacles.obstacleSeed})
+        </div>
+        <div>
+          <span style={{ color: "#2a6a9e" }}>degrad   </span>
+          {spec.degradation.preset}
+        </div>
+        <div style={{ marginTop: 6, color: "#1a4a6e", fontSize: "0.65rem" }}>
+          drag to orbit · scroll to zoom
+        </div>
+      </div>
     </div>
   );
 }

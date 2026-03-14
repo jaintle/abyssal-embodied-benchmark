@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Transpile workspace packages that ship raw TypeScript source
+  transpilePackages: ["@abyssal/worldgen"],
 };
 
 export default nextConfig;
