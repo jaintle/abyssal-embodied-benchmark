@@ -152,13 +152,13 @@ export default function LeaderboardTable({ summaries }: LeaderboardTableProps) {
         <thead>
           <tr>
             <th style={TH_FIRST}>agent</th>
-            <th style={TH}>succ</th>
-            <th style={TH}>coll</th>
-            <th style={TH}>tout</th>
-            <th style={TH}>reward</th>
-            <th style={TH}>steps</th>
-            <th style={TH}>speed</th>
-            <th style={TH}>dist</th>
+            <th style={TH} title="Success rate — fraction of episodes reaching the goal">succ</th>
+            <th style={TH} title="Collision rate — fraction of episodes ending in collision">coll</th>
+            <th style={TH} title="Timeout rate — fraction of episodes truncated at max steps">tout</th>
+            <th style={TH} title="Mean total undiscounted reward per episode">reward</th>
+            <th style={TH} title="Mean episode length in environment steps">steps</th>
+            <th style={TH} title="Mean action magnitude (L2 norm) — lower = more conservative">‖a‖</th>
+            <th style={TH} title="Mean distance to goal at episode end — lower is better">dist</th>
           </tr>
         </thead>
         <tbody>

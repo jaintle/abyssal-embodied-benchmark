@@ -107,14 +107,14 @@ export default function RobustnessPanel({ rows }: RobustnessPanelProps) {
 
   return (
     <div style={PANEL}>
-      <div style={TITLE}>robustness (succ%)</div>
+      <div style={TITLE}>robustness — success rate by condition</div>
       <table style={TABLE}>
         <thead>
           <tr>
             <th style={TH_FIRST}>agent</th>
-            {hasClear && <th style={TH}>clear</th>}
-            {hasHeavy && <th style={TH}>heavy</th>}
-            {hasClear && hasHeavy && <th style={TH}>Δ</th>}
+            {hasClear && <th style={TH} title="Success rate under clear conditions (no degradation)">clear</th>}
+            {hasHeavy && <th style={TH} title="Success rate under heavy degradation (σ=5m noise, 20% dropout)">heavy</th>}
+            {hasClear && hasHeavy && <th style={TH} title="Change in success rate from clear → heavy">Δ</th>}
           </tr>
         </thead>
         <tbody>

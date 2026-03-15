@@ -36,9 +36,9 @@ const PRESET_COLORS: Record<DegradationPreset, string> = {
 };
 
 const PRESET_DESC: Record<DegradationPreset, string> = {
-  clear: "No degradation — baseline",
-  mild:  "Moderate noise + reduced visibility",
-  heavy: "Heavy noise + severe visibility limit",
+  clear: "No degradation — baseline (σ=0, vis=30m, dropout=0%)",
+  mild:  "Moderate degradation (σ=1.5m, vis=18m, dropout=0%)",
+  heavy: "Severe degradation (σ=5m, vis=8m, dropout=20%)",
 };
 
 // ─── Styles ───────────────────────────────────────────────────────────────────

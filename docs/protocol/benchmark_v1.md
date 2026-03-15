@@ -110,11 +110,13 @@ class BenchmarkAgent(ABC):
 
 Built-in agents:
 
-| Agent | Class | Notes |
-|---|---|---|
-| `random` | `RandomAgent` | Uniform random actions; lower-bound baseline |
-| `heuristic` | `HeuristicAgent` | Full thrust toward goal; no obstacle avoidance |
-| `ppo:<path>` | `PPOAgent` | SB3 PPO loaded from checkpoint |
+| Agent specifier         | Class             | Notes |
+|-------------------------|-------------------|-------|
+| `random`                | `RandomAgent`     | Uniform random actions; lower-bound baseline |
+| `heuristic`             | `HeuristicAgent`  | Full thrust toward goal; no obstacle avoidance |
+| `ppo:<path>`            | `PPOAgent`        | SB3 PPO loaded from checkpoint; obs dim = 40 |
+| `cautious_ppo:<path>`   | `CautiousAgent`   | PPO trained with uncertainty obs + caution penalty; obs dim = 41 |
+| `cautious_ppo:<path>:<id>` | `CautiousAgent` | Same, with custom `policy_id` override |
 
 ---
 
@@ -122,13 +124,19 @@ Built-in agents:
 
 | Metric | Definition |
 |---|---|
-| Success rate | `goal_reached` fraction |
-| Collision rate | `collision` fraction |
-| Timeout rate | `timed_out` fraction |
-| OOB rate | `out_of_bounds` fraction |
-| Mean reward | Mean total undiscounted reward per episode |
-| Mean steps | Mean episode length |
-| Mean final dist | Mean distance to goal at episode termination |
+| `success_rate` | Fraction of episodes where `goal_reached = True` |
+| `collision_rate` | Fraction of episodes ending in collision termination |
+| `timeout_rate` | Fraction of episodes truncated at `max_steps` |
+| `oob_rate` | Fraction of episodes truncated out-of-bounds |
+| `mean_reward` | Mean total undiscounted return per episode |
+| `std_reward` | Std dev of total episode reward |
+| `mean_steps` | Mean episode length in environment steps |
+| `std_steps` | Std dev of episode length |
+| `mean_final_dist` | Mean Euclidean distance to goal at episode termination |
+| `std_final_dist` | Std dev of final distance |
+| `mean_action_magnitude` | Mean per-step L2 norm of action vector; measures behavioral conservatism |
+
+Note: `success_rate + collision_rate + timeout_rate + oob_rate = 1.0` for any agent.
 
 ---
 
@@ -252,3 +260,44 @@ Cautious agent sacrifices some clear-condition performance for robustness:
 - 0% collision even under heavy degradation
 - Action magnitude reduces automatically as visibility degrades
 - Higher timeout rate (accepts slower approach)
+
+---
+
+## Reproducibility Checklist
+
+To claim a result is reproducible under this protocol, a run must:
+
+1. Record `world_seed`, `episode_seeds`, `n_episodes`, `max_steps`,
+   `degradation_preset`, `benchmark_version`, `env_version`, and `git_commit`
+   in `benchmark_config.json`.
+2. Use the same `world_seed` and `episode_seeds` for all agents in the comparison.
+3. Use the same `degradation_preset` for all agents in a single-preset comparison
+   (or run `--degradation-presets` for multi-preset; outputs are per-preset subdirs).
+4. Call `agent.reset()` between episodes (runner enforces this automatically).
+5. For PPO agents: record the checkpoint path and training config in the experiment log.
+6. For cautious agents: record `caution_coeff` and `obs_dim` in the experiment log.
+7. Export at least one replay per agent (`--export-replay-seed`) so results can be
+   visually verified in the web viewer.
+
+The `benchmark_config.json` artifact satisfies items 1–4 automatically.
+Items 5–7 require researcher discipline; use `docs/experiment_log.md` as the record.
+
+---
+
+## Versioning
+
+`benchmark_version` and `env_version` are both `"0.1.0"` for all Phase 5–9 runs.
+The shared replay schema version is also tracked in
+`packages/replay-schema/package.json`.
+
+A version bump is required if any of the following change:
+
+- Observation layout (feature indices, shape)
+- Action space bounds
+- Episode termination conditions
+- Reward function
+- Degradation preset parameters
+- World spec schema fields
+
+Agent implementations are **not** versioned; use the checkpoint path + git commit
+as the stable reference.

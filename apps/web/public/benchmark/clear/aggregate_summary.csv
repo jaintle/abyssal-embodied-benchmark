@@ -1,0 +1,5 @@
+agent_id,world_seed,degradation_preset,n_episodes,env_version,benchmark_version,success_rate,collision_rate,timeout_rate,oob_rate,mean_reward,std_reward,mean_steps,std_steps,mean_final_dist,std_final_dist,mean_action_magnitude
+heuristic,42,clear,20,0.1.0,0.1.0,1.0,0.0,0.0,0.0,52.66,0.0,68.0,0.0,1.4677,0.0,1.0
+ppo,42,clear,20,0.1.0,0.1.0,1.0,0.0,0.0,0.0,52.8943,0.0,69.0,0.0,1.2284,0.0,1.0977
+cautious_ppo,42,clear,20,0.1.0,0.1.0,1.0,0.0,0.0,0.0,52.8812,0.0,68.0,0.0,1.2465,0.0,1.2975
+random,42,clear,20,0.1.0,0.1.0,0.0,0.0,0.0,1.0,-36.4994,0.0,150.0,0.0,70.2171,0.0,0.8001
