@@ -1,1 +1,1 @@
-export * from "./replaySchema.js";
+export * from "./replaySchema";

@@ -38,7 +38,7 @@ export const ReplayHeaderSchema = z.object({
   recordedAt: z.string(),
 
   /** Git commit hash of the benchmark codebase (optional, for audit) */
-  gitCommit: z.string().optional(),
+  gitCommit: z.string().nullish(),
 });
 
 export type ReplayHeader = z.infer<typeof ReplayHeaderSchema>;
