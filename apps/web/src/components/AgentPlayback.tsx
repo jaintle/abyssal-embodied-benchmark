@@ -48,6 +48,15 @@ export interface AgentPlaybackProps {
    */
   seekVersion?: number;
   seekToStep?: number;
+  /**
+   * Phase 6: agent colour overrides.
+   * Defaults to the original teal-green for backward compat.
+   */
+  agentColor?: string;
+  /** Whether to render the pulsing glow shell. Default: true */
+  showGlow?: boolean;
+  /** Whether to render the agent point light. Default: true */
+  showPointLight?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -60,6 +69,9 @@ export default function AgentPlayback({
   onStepChange,
   seekVersion,
   seekToStep,
+  agentColor = "#00ffaa",
+  showGlow = true,
+  showPointLight = true,
 }: AgentPlaybackProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
@@ -158,8 +170,8 @@ export default function AgentPlayback({
       <mesh ref={meshRef} position={[0, AGENT_Y, 0]}>
         <sphereGeometry args={[AGENT_RADIUS, 20, 16]} />
         <meshStandardMaterial
-          color="#00ffaa"
-          emissive="#00cc88"
+          color={agentColor}
+          emissive={agentColor}
           emissiveIntensity={0.8}
           roughness={0.3}
           metalness={0.1}
@@ -167,26 +179,30 @@ export default function AgentPlayback({
       </mesh>
 
       {/* Pulsing outer glow shell — larger, transparent */}
-      <mesh ref={glowRef} position={[0, AGENT_Y, 0]}>
-        <sphereGeometry args={[AGENT_RADIUS * 1.6, 16, 12]} />
-        <meshStandardMaterial
-          color="#00ffaa"
-          emissive="#00ffaa"
-          emissiveIntensity={0.2}
-          transparent
-          opacity={0.12}
-          side={THREE.BackSide}
-          depthWrite={false}
-        />
-      </mesh>
+      {showGlow && (
+        <mesh ref={glowRef} position={[0, AGENT_Y, 0]}>
+          <sphereGeometry args={[AGENT_RADIUS * 1.6, 16, 12]} />
+          <meshStandardMaterial
+            color={agentColor}
+            emissive={agentColor}
+            emissiveIntensity={0.2}
+            transparent
+            opacity={0.12}
+            side={THREE.BackSide}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
 
       {/* Agent point light — illuminates nearby terrain */}
-      <pointLight
-        color="#00ffaa"
-        intensity={6}
-        distance={8}
-        position={[0, AGENT_Y, 0]}
-      />
+      {showPointLight && (
+        <pointLight
+          color={agentColor}
+          intensity={6}
+          distance={8}
+          position={[0, AGENT_Y, 0]}
+        />
+      )}
     </group>
   );
 }

@@ -23,11 +23,14 @@ const TRAIL_Y = 0.8;
 interface TrajectoryTrailProps {
   steps: ReplayStep[];
   currentStep: number;
+  /** Trail colour — defaults to the original teal (#1aafa0). */
+  color?: string;
 }
 
-export default function TrajectoryTrail({ steps, currentStep }: TrajectoryTrailProps) {
+export default function TrajectoryTrail({ steps, currentStep, color = "#1aafa0" }: TrajectoryTrailProps) {
   // Build the full position buffer once from all replay steps.
   // The draw range controls how much is visible — no allocation on update.
+  // color is included in deps so swapping agents re-creates the material.
   const { line, geometry } = useMemo(() => {
     const positions = new Float32Array(steps.length * 3);
     for (let i = 0; i < steps.length; i++) {
@@ -41,14 +44,14 @@ export default function TrajectoryTrail({ steps, currentStep }: TrajectoryTrailP
     geo.setDrawRange(0, 1);
 
     const mat = new THREE.LineBasicMaterial({
-      color: new THREE.Color("#1aafa0"),
+      color: new THREE.Color(color),
       transparent: true,
       opacity: 0.5,
       depthWrite: false,
     });
 
     return { line: new THREE.Line(geo, mat), geometry: geo };
-  }, [steps]);
+  }, [steps, color]);
 
   // Extend (or shrink on seek) the visible trail without touching positions.
   useEffect(() => {

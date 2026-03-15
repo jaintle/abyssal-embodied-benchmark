@@ -1,14 +1,15 @@
 /**
- * page.tsx — Abyssal Embodied Benchmark replay viewer (Phase 4)
+ * page.tsx — Abyssal Embodied Benchmark multi-agent comparison viewer (Phase 6)
  *
- * Server Component root. Renders the full-screen replay viewer via
- * DynamicReplayViewer, which opts out of SSR for the WebGL canvas.
+ * Server Component root. Renders the multi-agent comparison viewer via
+ * DynamicMultiReplayViewer, which opts out of SSR for the WebGL canvas.
  *
- * All playback state, replay loading, and 3D rendering are handled
- * inside DynamicReplayViewer (a Client Component).
+ * Layout (owned by MultiReplayViewer):
+ *   left  — sidebar: BenchmarkSummaryPanel + LeaderboardTable
+ *   right — 3D comparison canvas + ReplayComparisonControls overlay
  */
 
-import DynamicReplayViewer from "@/components/DynamicReplayViewer";
+import DynamicMultiReplayViewer from "@/components/DynamicMultiReplayViewer";
 
 export default function BenchmarkPage() {
   return (
@@ -21,7 +22,7 @@ export default function BenchmarkPage() {
         position: "relative",
       }}
     >
-      <DynamicReplayViewer />
+      <DynamicMultiReplayViewer />
     </div>
   );
 }
