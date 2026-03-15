@@ -7,6 +7,12 @@ from .evaluate_policy import (
     Policy,
 )
 from .replay_export import record_episode, export_episode, BENCHMARK_VERSION
+from .benchmark_runner import (
+    BenchmarkRunner,
+    BenchmarkConfig,
+    AgentBenchmarkSummary,
+    BenchmarkEpisodeResult,
+)
 
 __all__ = [
     "EvaluationHarness",
@@ -16,4 +22,8 @@ __all__ = [
     "record_episode",
     "export_episode",
     "BENCHMARK_VERSION",
+    "BenchmarkRunner",
+    "BenchmarkConfig",
+    "AgentBenchmarkSummary",
+    "BenchmarkEpisodeResult",
 ]

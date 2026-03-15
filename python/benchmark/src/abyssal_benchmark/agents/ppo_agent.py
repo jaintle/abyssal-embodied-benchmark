@@ -1,5 +1,5 @@
 """
-PPO agent — Phase 3
+PPO agent — Phase 3 / Phase 5
 
 Thin wrapper around Stable-Baselines3 PPO that:
 
@@ -8,6 +8,8 @@ Thin wrapper around Stable-Baselines3 PPO that:
    observation.
 3. Exposes ``train()``, ``save()``, ``load()``, and ``predict()`` in a
    minimal, benchmark-oriented API.
+4. (Phase 5) Implements the BenchmarkAgent interface so it can be evaluated
+   generically by BenchmarkRunner.
 
 Design notes
 ────────────
@@ -27,6 +29,8 @@ from typing import Any, Callable, Dict, Optional
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecMonitor
+
+from .base import BenchmarkAgent
 
 # ─── Defaults ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +56,7 @@ DEFAULT_PPO_KWARGS: Dict[str, Any] = {
 
 # ─── Agent ────────────────────────────────────────────────────────────────────
 
-class PPOAgent:
+class PPOAgent(BenchmarkAgent):
     """
     PPO baseline agent for AbyssalNavigationEnv.
 
@@ -78,8 +82,11 @@ class PPOAgent:
         ppo_kwargs: Optional[Dict[str, Any]] = None,
         tensorboard_log: Optional[str] = None,
         seed: int = 0,
+        policy_id: str = "ppo",
     ) -> None:
         import torch.nn as nn  # deferred to avoid hard startup cost
+
+        self._policy_id = policy_id
 
         # Build policy kwargs, defaulting activation to Tanh
         pk = dict(DEFAULT_POLICY_KWARGS)
@@ -104,6 +111,15 @@ class PPOAgent:
             seed=seed,
             **kw,
         )
+
+    # ── BenchmarkAgent interface ───────────────────────────────────────────────
+
+    def get_policy_id(self) -> str:
+        """Return a stable policy identifier for leaderboard output."""
+        return self._policy_id
+
+    def reset(self) -> None:
+        """No per-episode state — no-op."""
 
     # ── Training ──────────────────────────────────────────────────────────────
 
@@ -132,7 +148,12 @@ class PPOAgent:
         self._model.save(str(path))
 
     @classmethod
-    def load(cls, path: Path, env_factory: Callable[[], Any]) -> "PPOAgent":
+    def load(
+        cls,
+        path: Path,
+        env_factory: Callable[[], Any],
+        policy_id: str = "ppo",
+    ) -> "PPOAgent":
         """
         Load a saved PPO model.
 
@@ -144,6 +165,7 @@ class PPOAgent:
         vec_env = VecMonitor(vec_env)
         agent = object.__new__(cls)
         agent._model = PPO.load(str(path), env=vec_env)
+        agent._policy_id = policy_id
         return agent
 
     # ── Inference ─────────────────────────────────────────────────────────────
