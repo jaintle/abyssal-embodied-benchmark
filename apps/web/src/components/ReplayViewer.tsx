@@ -62,6 +62,11 @@ export default function ReplayViewer() {
   const [currentStep, setCurrentStep] = useState(0);
   /** Increment to trigger a full playback reset inside AgentPlayback */
   const [playbackKey, setPlaybackKey] = useState(0);
+  /** Camera mode: overview (orbit) or follow (track agent) */
+  const [cameraMode, setCameraMode] = useState<"overview" | "follow">("overview");
+  /** Scrubber seek: increment seekVersion to snap agent to seekToStep */
+  const [seekVersion, setSeekVersion] = useState(0);
+  const [seekToStep, setSeekToStep] = useState(0);
 
   // ── Load sample replay on mount ────────────────────────────────────────────
   useEffect(() => {
@@ -95,6 +100,17 @@ export default function ReplayViewer() {
       setPlaying(false);
     }
   }, [replay]);
+
+  const handleSeek = useCallback((step: number) => {
+    setPlaying(false);
+    setCurrentStep(step);
+    setSeekToStep(step);
+    setSeekVersion((v) => v + 1);
+  }, []);
+
+  const handleCameraToggle = useCallback(() => {
+    setCameraMode((m) => (m === "overview" ? "follow" : "overview"));
+  }, []);
 
   // ── Render states ──────────────────────────────────────────────────────────
   if (isLoading) {
@@ -137,6 +153,10 @@ export default function ReplayViewer() {
           playing={playing}
           speed={speed}
           playbackKey={playbackKey}
+          currentStep={currentStep}
+          cameraMode={cameraMode}
+          seekVersion={seekVersion}
+          seekToStep={seekToStep}
           onStepChange={handleStepChange}
         />
       </div>
@@ -150,10 +170,13 @@ export default function ReplayViewer() {
         speed={speed}
         currentStep={currentStep}
         totalSteps={replay.steps.length}
+        cameraMode={cameraMode}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onRestart={handleRestart}
         onSpeedChange={setSpeed}
+        onSeek={handleSeek}
+        onCameraToggle={handleCameraToggle}
       />
     </div>
   );

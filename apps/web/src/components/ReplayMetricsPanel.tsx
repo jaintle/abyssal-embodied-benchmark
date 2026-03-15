@@ -79,6 +79,16 @@ function StatusBadge({
   );
 }
 
+function TerminationBadge({ metrics }: { metrics: ReplaySummaryMetrics }) {
+  if (metrics.goalReached) {
+    return <span style={{ color: "#00ffa0", fontWeight: "bold" }}>GOAL REACHED</span>;
+  }
+  if (metrics.collisionOccurred) {
+    return <span style={{ color: "#ff6060", fontWeight: "bold" }}>COLLISION</span>;
+  }
+  return <span style={{ color: "#e0a030", fontWeight: "bold" }}>TIMEOUT</span>;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ReplayMetricsPanel({
@@ -150,18 +160,8 @@ export default function ReplayMetricsPanel({
       {/* Episode outcome */}
       <div style={SECTION_TITLE}>outcome</div>
       <Row
-        label="goal    "
-        value={<StatusBadge value={metrics.goalReached} />}
-      />
-      <Row
-        label="collision"
-        value={
-          <StatusBadge
-            value={metrics.collisionOccurred}
-            trueColor="#ff6060"
-            falseColor="#4a9aba"
-          />
-        }
+        label="result  "
+        value={<TerminationBadge metrics={metrics} />}
       />
       <Row
         label="steps   "

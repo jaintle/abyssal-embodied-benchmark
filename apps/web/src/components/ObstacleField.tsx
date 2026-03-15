@@ -26,11 +26,11 @@ export default function ObstacleField({ obstacles }: ObstacleFieldProps) {
         >
           <sphereGeometry args={[obs.radius, 16, 12]} />
           <meshStandardMaterial
-            color="#1a3a4a"
-            roughness={0.8}
-            metalness={0.2}
-            emissive="#0a1520"
-            emissiveIntensity={0.15}
+            color="#1e4a62"
+            roughness={0.75}
+            metalness={0.25}
+            emissive="#0d2d4a"
+            emissiveIntensity={0.5}
           />
         </mesh>
       ))}

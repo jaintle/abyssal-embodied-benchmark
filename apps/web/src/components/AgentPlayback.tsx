@@ -41,6 +41,13 @@ export interface AgentPlaybackProps {
   playbackKey: number;
   /** Called whenever the current step index changes (for UI updates) */
   onStepChange?: (stepIndex: number) => void;
+  /**
+   * Scrubber seek support (Phase 4.5).
+   * Increment seekVersion to snap the agent to seekToStep.
+   * Both must be updated together in the same state transition.
+   */
+  seekVersion?: number;
+  seekToStep?: number;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -51,6 +58,8 @@ export default function AgentPlayback({
   speed,
   playbackKey,
   onStepChange,
+  seekVersion,
+  seekToStep,
 }: AgentPlaybackProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
@@ -76,6 +85,21 @@ export default function AgentPlayback({
     onStepChange?.(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playbackKey]);
+
+  // Seek to a specific step when seekVersion changes (scrubber drag)
+  useEffect(() => {
+    if (seekVersion === undefined || seekToStep === undefined) return;
+    const target = Math.max(0, Math.min(seekToStep, steps.length - 1));
+    currentStepRef.current = target;
+    timeAccRef.current = 0;
+    if (steps.length > 0 && meshRef.current) {
+      const s = steps[target];
+      meshRef.current.position.set(s.position[0], AGENT_Y, s.position[2]);
+    }
+    onStepChange?.(target);
+  // seekVersion is the trigger; seekToStep is always read alongside it
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seekVersion]);
 
   // Set initial position on first mount / steps change
   useEffect(() => {

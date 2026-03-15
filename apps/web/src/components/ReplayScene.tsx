@@ -27,6 +27,8 @@ import TerrainMesh from "./TerrainMesh";
 import ObstacleField from "./ObstacleField";
 import GoalMarker from "./GoalMarker";
 import AgentPlayback from "./AgentPlayback";
+import TrajectoryTrail from "./TrajectoryTrail";
+import CameraController from "./CameraController";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,10 @@ export interface ReplaySceneProps {
   playing: boolean;
   speed: number;
   playbackKey: number;
+  currentStep: number;
+  cameraMode: "overview" | "follow";
+  seekVersion: number;
+  seekToStep: number;
   onStepChange?: (stepIndex: number) => void;
 }
 
@@ -52,6 +58,10 @@ interface InnerProps {
   playing: boolean;
   speed: number;
   playbackKey: number;
+  currentStep: number;
+  cameraMode: "overview" | "follow";
+  seekVersion: number;
+  seekToStep: number;
   onStepChange?: (stepIndex: number) => void;
 }
 
@@ -60,6 +70,10 @@ function ReplayWorldScene({
   playing,
   speed,
   playbackKey,
+  currentStep,
+  cameraMode,
+  seekVersion,
+  seekToStep,
   onStepChange,
 }: InnerProps) {
   const worldSeed = replay.header.worldSeed;
@@ -103,6 +117,9 @@ function ReplayWorldScene({
       <ObstacleField obstacles={obstacles} />
       <GoalMarker goal={spec.goal} />
 
+      {/* ── Trajectory trail ────────────────────────────────────────────── */}
+      <TrajectoryTrail steps={replay.steps} currentStep={currentStep} />
+
       {/* ── Animated agent ─────────────────────────────────────────────── */}
       <AgentPlayback
         key={playbackKey}
@@ -110,11 +127,19 @@ function ReplayWorldScene({
         playing={playing}
         speed={speed}
         playbackKey={playbackKey}
+        seekVersion={seekVersion}
+        seekToStep={seekToStep}
         onStepChange={onStepChange}
       />
 
-      {/* ── Camera controls ────────────────────────────────────────────── */}
+      {/* ── Camera ─────────────────────────────────────────────────────── */}
+      <CameraController
+        mode={cameraMode}
+        steps={replay.steps}
+        currentStep={currentStep}
+      />
       <OrbitControls
+        enabled={cameraMode === "overview"}
         enableDamping
         dampingFactor={0.08}
         minDistance={5}
@@ -133,6 +158,10 @@ export default function ReplayScene({
   playing,
   speed,
   playbackKey,
+  currentStep,
+  cameraMode,
+  seekVersion,
+  seekToStep,
   onStepChange,
 }: ReplaySceneProps) {
   return (
@@ -156,6 +185,10 @@ export default function ReplayScene({
         playing={playing}
         speed={speed}
         playbackKey={playbackKey}
+        currentStep={currentStep}
+        cameraMode={cameraMode}
+        seekVersion={seekVersion}
+        seekToStep={seekToStep}
         onStepChange={onStepChange}
       />
     </Canvas>

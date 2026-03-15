@@ -33,24 +33,57 @@ export async function loadReplayFromPath(
   path: string = SAMPLE_REPLAY_PATH
 ): Promise<SafeValidateResult<ReplayFile>> {
   let raw: unknown;
+
+  // ── Network / fetch errors ─────────────────────────────────────────────────
+  let res: Response;
   try {
-    const res = await fetch(path);
-    if (!res.ok) {
-      return {
-        success: false,
-        error: makeZodLikeError(
-          `HTTP ${res.status} fetching replay from ${path}`
-        ),
-      };
-    }
-    raw = await res.json();
+    res = await fetch(path);
   } catch (e) {
+    const msg = e instanceof TypeError
+      ? `Replay file not reachable: ${path}`
+      : `Network error loading replay: ${String(e)}`;
+    return { success: false, error: makeZodLikeError(msg) };
+  }
+
+  if (res.status === 404) {
     return {
       success: false,
-      error: makeZodLikeError(String(e)),
+      error: makeZodLikeError(`Replay file not found: ${path}`),
     };
   }
-  return safeValidateReplayFile(raw);
+  if (!res.ok) {
+    return {
+      success: false,
+      error: makeZodLikeError(`HTTP ${res.status} loading replay from ${path}`),
+    };
+  }
+
+  // ── JSON parse errors ──────────────────────────────────────────────────────
+  try {
+    raw = await res.json();
+  } catch {
+    return {
+      success: false,
+      error: makeZodLikeError(
+        `Replay file is not valid JSON. Check that ${path} was not corrupted.`
+      ),
+    };
+  }
+
+  // ── Schema validation errors — format concisely ────────────────────────────
+  const result = safeValidateReplayFile(raw);
+  if (!result.success) {
+    const issues = (result.error as { issues?: { path: (string | number)[]; message: string }[] }).issues;
+    const summary = issues && issues.length > 0
+      ? issues
+          .slice(0, 3)
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(" | ")
+      : "Schema mismatch — check replay format matches benchmark version 0.1.0";
+    return { success: false, error: makeZodLikeError(summary) };
+  }
+
+  return result;
 }
 
 /**

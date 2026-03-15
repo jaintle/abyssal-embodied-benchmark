@@ -69,7 +69,7 @@ function UnderwaterScene({ seed }: SceneProps) {
 
       {/* ── Lighting ───────────────────────────────────────────────────── */}
       {/* Dim blue ambient — simulates scattered underwater light */}
-      <ambientLight color="#1a4a6e" intensity={1.8} />
+      <ambientLight color="#1a4a6e" intensity={2.2} />
 
       {/* Weak directional from above — caustic-like overhead light */}
       <directionalLight

@@ -26,14 +26,20 @@ export default function GoalMarker({ goal }: GoalMarkerProps) {
     <group name="goal-marker" position={[x, y, z]}>
       {/* Emissive core — clearly visible target */}
       <mesh>
-        <sphereGeometry args={[0.4, 16, 12]} />
+        <sphereGeometry args={[0.55, 20, 16]} />
         <meshStandardMaterial
           color="#00ffa0"
           emissive="#00ffa0"
-          emissiveIntensity={1.2}
-          roughness={0.1}
+          emissiveIntensity={2.2}
+          roughness={0.05}
           metalness={0.0}
         />
+      </mesh>
+
+      {/* Flat accent ring at goal height — adds XZ contrast */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[ar * 0.7, 0.06, 8, 40]} />
+        <meshBasicMaterial color="#00ffa0" transparent opacity={0.45} />
       </mesh>
 
       {/* Acceptance-radius wireframe */}
@@ -43,7 +49,7 @@ export default function GoalMarker({ goal }: GoalMarkerProps) {
           color="#00ffa0"
           wireframe
           transparent
-          opacity={0.25}
+          opacity={0.22}
         />
       </mesh>
 
