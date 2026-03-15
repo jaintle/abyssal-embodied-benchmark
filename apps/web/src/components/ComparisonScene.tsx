@@ -4,26 +4,14 @@
  * ComparisonScene — R3F canvas rendering multiple agents in one shared world
  * (Phase 6)
  *
- * All agents share the same world seed → same terrain, obstacles, and goal.
- * Each agent gets a distinct color for its sphere and trajectory trail.
- * Playback is synchronized: all agents receive the same playing/speed/seek
- * state simultaneously.
- *
- * Architecture:
- *   ComparisonScene (Canvas wrapper)
- *     └── ComparisonWorldScene (inner scene, runs inside Canvas context)
- *           ├── shared world geometry (terrain, obstacles, goal)
- *           ├── AgentPlayback × N  (one per agent, colored)
- *           ├── TrajectoryTrail × N
- *           ├── CameraController (overview-only in comparison mode)
- *           └── OrbitControls
+ * Phase 10 upgrades: same cinematic atmosphere as WorldScene / ReplayScene.
+ * UnderwaterAtmosphere, CausticsLayer, ParticleField wired in.
+ * Hardware antialias:true (postprocessing removed; R3F v9 incompatible).
  */
 
 import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
-
 import {
   generateWorldSpec,
   generateTerrainGrid,
@@ -37,13 +25,11 @@ import ObstacleField from "./ObstacleField";
 import GoalMarker from "./GoalMarker";
 import AgentPlayback from "./AgentPlayback";
 import TrajectoryTrail from "./TrajectoryTrail";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const FOG_COLOR = new THREE.Color(0x030e18);
-const FOG_NEAR = 8;
-const FOG_FAR = 90;
-const BACKGROUND_COLOR = new THREE.Color(0x020a12);
+import UnderwaterAtmosphere from "./UnderwaterAtmosphere";
+import CausticsLayer from "./CausticsLayer";
+import ParticleField from "./ParticleField";
+import WaterSurface from "./WaterSurface";
+import GodRays from "./GodRays";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,7 +40,6 @@ export interface ComparisonAgent {
 }
 
 export interface ComparisonSceneProps {
-  /** All agents must share the same world seed */
   worldSeed: number;
   agents: ComparisonAgent[];
   playing: boolean;
@@ -62,7 +47,6 @@ export interface ComparisonSceneProps {
   playbackKey: number;
   seekVersion: number;
   seekToStep: number;
-  /** Called with the step index from the longest-running agent */
   onStepChange?: (stepIndex: number) => void;
 }
 
@@ -80,18 +64,15 @@ function ComparisonWorldScene({
   seekToStep,
   onStepChange,
 }: InnerProps) {
-  const spec = useMemo(() => generateWorldSpec(worldSeed), [worldSeed]);
-  const grid = useMemo(() => generateTerrainGrid(spec, DEFAULT_TERRAIN_RESOLUTION), [spec]);
+  const spec      = useMemo(() => generateWorldSpec(worldSeed), [worldSeed]);
+  const grid      = useMemo(() => generateTerrainGrid(spec, DEFAULT_TERRAIN_RESOLUTION), [spec]);
   const obstacles = useMemo(() => generateObstacles(spec), [spec]);
 
-  // Report canonical step from the agent with the MOST replay steps.
-  // Shorter agents finish early and stop emitting; if we reported from
-  // agent[0] it might have fewer steps than others, freezing the scrubber.
   const longestAgentIndex = useMemo(
     () =>
       agents.reduce(
         (maxIdx, a, i, arr) =>
-          a.replay.steps.length > arr[maxIdx].replay.steps.length ? i : maxIdx,
+          (a.replay.steps?.length ?? 0) > (arr[maxIdx].replay.steps?.length ?? 0) ? i : maxIdx,
         0
       ),
     [agents]
@@ -103,36 +84,23 @@ function ComparisonWorldScene({
 
   return (
     <>
-      {/* ── Atmosphere ──────────────────────────────────────────────────── */}
-      <color attach="background" args={[BACKGROUND_COLOR]} />
-      <fog attach="fog" args={[FOG_COLOR, FOG_NEAR, FOG_FAR]} />
+      {/* ── Atmosphere ─────────────────────────────────────────────── */}
+      <UnderwaterAtmosphere />
 
-      {/* ── Lighting ────────────────────────────────────────────────────── */}
-      <ambientLight color="#1a4a6e" intensity={2.2} />
-      <directionalLight
-        color="#2a6a9e"
-        intensity={0.6}
-        position={[10, 30, 10]}
-        castShadow={false}
-      />
-      {/* Goal proximity glow */}
-      <pointLight
-        color="#00ffa0"
-        intensity={12}
-        distance={20}
-        position={[
-          spec.goal.position[0],
-          spec.goal.position[1] + 2,
-          spec.goal.position[2],
-        ]}
-      />
-
-      {/* ── Static world geometry ────────────────────────────────────────── */}
+      {/* ── Static world geometry ──────────────────────────────────── */}
       <TerrainMesh grid={grid} />
       <ObstacleField obstacles={obstacles} />
       <GoalMarker goal={spec.goal} />
 
-      {/* ── Per-agent trail + animated sphere ───────────────────────────── */}
+      {/* ── Volumetric cues ────────────────────────────────────────── */}
+      <CausticsLayer />
+      <ParticleField />
+
+      {/* ── Always-on surface effects (Phase 11) ─────────────────────── */}
+      <WaterSurface />
+      <GodRays />
+
+      {/* ── Per-agent trail + animated sphere ─────────────────────── */}
       {agents.map((agent, i) => (
         <group key={agent.agentId}>
           <TrajectoryTrail
@@ -149,14 +117,14 @@ function ComparisonWorldScene({
             seekVersion={seekVersion}
             seekToStep={seekToStep}
             agentColor={agent.color}
-            showGlow={i === 0}          // glow only on lead agent to reduce clutter
-            showPointLight={false}       // one shared ambient light instead
+            showGlow={i === 0}
+            showPointLight={false}
             onStepChange={handleStepChange(i)}
           />
         </group>
       ))}
 
-      {/* ── Camera (overview only — follow doesn't work with N agents) ───── */}
+      {/* ── Camera (overview only) ──────────────────────────────────── */}
       <OrbitControls
         enableDamping
         dampingFactor={0.08}
@@ -165,6 +133,7 @@ function ComparisonWorldScene({
         maxPolarAngle={Math.PI * 0.55}
         target={[0, 0, 0]}
       />
+
     </>
   );
 }
@@ -186,6 +155,7 @@ export default function ComparisonScene(props: ComparisonSceneProps) {
         antialias: true,
         alpha: false,
         powerPreference: "high-performance",
+        stencil: false,
       }}
     >
       <ComparisonWorldScene {...props} />

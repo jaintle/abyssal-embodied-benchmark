@@ -1,20 +1,18 @@
 "use client";
 
 /**
- * ReplayScene — R3F canvas that renders a seeded world + animated agent (Phase 4)
+ * ReplayScene — R3F canvas rendering a seeded world + animated agent (Phase 4)
  *
- * Reuses all Phase 1 geometry components (TerrainMesh, ObstacleField, GoalMarker)
- * and adds AgentPlayback for replay-driven animation.
+ * Phase 10 upgrades: same cinematic atmosphere as WorldScene.
+ * UnderwaterAtmosphere, CausticsLayer, ParticleField wired in.
+ * Hardware antialias:true (postprocessing removed; R3F v9 incompatible).
  *
- * The world is reconstructed deterministically from replay.header.worldSeed —
- * the same seed the Python benchmark used when the episode was recorded.
+ * Phase 11: WaterSurface and GodRays always on.
  */
 
 import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
-
 import {
   generateWorldSpec,
   generateTerrainGrid,
@@ -29,13 +27,11 @@ import GoalMarker from "./GoalMarker";
 import AgentPlayback from "./AgentPlayback";
 import TrajectoryTrail from "./TrajectoryTrail";
 import CameraController from "./CameraController";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const FOG_COLOR = new THREE.Color(0x030e18);
-const FOG_NEAR = 8;
-const FOG_FAR = 90;
-const BACKGROUND_COLOR = new THREE.Color(0x020a12);
+import UnderwaterAtmosphere from "./UnderwaterAtmosphere";
+import CausticsLayer from "./CausticsLayer";
+import ParticleField from "./ParticleField";
+import WaterSurface from "./WaterSurface";
+import GodRays from "./GodRays";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,7 +47,7 @@ export interface ReplaySceneProps {
   onStepChange?: (stepIndex: number) => void;
 }
 
-// ─── Inner scene (runs inside Canvas context) ─────────────────────────────────
+// ─── Inner scene ──────────────────────────────────────────────────────────────
 
 interface InnerProps {
   replay: ReplayFile;
@@ -77,50 +73,32 @@ function ReplayWorldScene({
   onStepChange,
 }: InnerProps) {
   const worldSeed = replay.header.worldSeed;
-
-  // Reconstruct world geometry deterministically from the replay's world seed
-  const spec = useMemo(() => generateWorldSpec(worldSeed), [worldSeed]);
-  const grid = useMemo(
-    () => generateTerrainGrid(spec, DEFAULT_TERRAIN_RESOLUTION),
-    [spec]
-  );
+  const spec      = useMemo(() => generateWorldSpec(worldSeed), [worldSeed]);
+  const grid      = useMemo(() => generateTerrainGrid(spec, DEFAULT_TERRAIN_RESOLUTION), [spec]);
   const obstacles = useMemo(() => generateObstacles(spec), [spec]);
 
   return (
     <>
-      {/* ── Atmosphere ─────────────────────────────────────────────────── */}
-      <color attach="background" args={[BACKGROUND_COLOR]} />
-      <fog attach="fog" args={[FOG_COLOR, FOG_NEAR, FOG_FAR]} />
+      {/* ── Atmosphere ─────────────────────────────────────────────── */}
+      <UnderwaterAtmosphere />
 
-      {/* ── Lighting ───────────────────────────────────────────────────── */}
-      <ambientLight color="#1a4a6e" intensity={1.8} />
-      <directionalLight
-        color="#2a6a9e"
-        intensity={0.6}
-        position={[10, 30, 10]}
-        castShadow={false}
-      />
-      {/* Goal proximity glow */}
-      <pointLight
-        color="#00ffa0"
-        intensity={12}
-        distance={20}
-        position={[
-          spec.goal.position[0],
-          spec.goal.position[1] + 2,
-          spec.goal.position[2],
-        ]}
-      />
-
-      {/* ── Static world geometry ──────────────────────────────────────── */}
+      {/* ── Static world geometry ──────────────────────────────────── */}
       <TerrainMesh grid={grid} />
       <ObstacleField obstacles={obstacles} />
       <GoalMarker goal={spec.goal} />
 
-      {/* ── Trajectory trail ────────────────────────────────────────────── */}
+      {/* ── Volumetric cues ────────────────────────────────────────── */}
+      <CausticsLayer />
+      <ParticleField />
+
+      {/* ── Always-on surface effects (Phase 11) ─────────────────────── */}
+      <WaterSurface />
+      <GodRays />
+
+      {/* ── Trajectory trail ──────────────────────────────────────── */}
       <TrajectoryTrail steps={replay.steps} currentStep={currentStep} />
 
-      {/* ── Animated agent ─────────────────────────────────────────────── */}
+      {/* ── Animated agent ─────────────────────────────────────────── */}
       <AgentPlayback
         key={playbackKey}
         steps={replay.steps}
@@ -132,7 +110,7 @@ function ReplayWorldScene({
         onStepChange={onStepChange}
       />
 
-      {/* ── Camera ─────────────────────────────────────────────────────── */}
+      {/* ── Camera ─────────────────────────────────────────────────── */}
       <CameraController
         mode={cameraMode}
         steps={replay.steps}
@@ -147,6 +125,7 @@ function ReplayWorldScene({
         maxPolarAngle={Math.PI * 0.55}
         target={[0, 0, 0]}
       />
+
     </>
   );
 }
@@ -178,6 +157,7 @@ export default function ReplayScene({
         antialias: true,
         alpha: false,
         powerPreference: "high-performance",
+        stencil: false,
       }}
     >
       <ReplayWorldScene
