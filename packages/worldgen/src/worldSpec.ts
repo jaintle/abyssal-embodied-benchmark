@@ -57,29 +57,66 @@ export interface GoalSpec {
 }
 
 /**
- * Visual degradation preset applied to the agent's observations.
- * Used to benchmark robustness under perceptual noise.
+ * Named degradation preset applied to the agent's observations.
+ *
+ *  clear  — no degradation (baseline)
+ *  mild   — moderate noise + reduced visibility
+ *  heavy  — strong noise + severe visibility reduction + dropout
  */
-export type DegradationPreset =
-  | "none"
-  | "low_turbidity"
-  | "high_turbidity"
-  | "caustic_noise"
-  | "low_visibility";
+export type DegradationPreset = "clear" | "mild" | "heavy";
 
 /**
  * Full degradation configuration for one benchmark episode.
+ *
+ * Rendering fields (turbidity, causticIntensity) are used by the browser
+ * to match the visual presentation to the perceived difficulty.
+ * Observation fields (noiseScale, visibilityRange, dropoutProb) directly
+ * affect the feature vector seen by the agent.
  */
 export interface DegradationSpec {
-  /** Named preset controlling which degradation pipeline to activate */
+  /** Named preset — single source of truth for preset identity */
   preset: DegradationPreset;
-  /** Turbidity coefficient — higher = more scattering (0–1) */
+  /** Turbidity coefficient for browser rendering (0–1) */
   turbidity: number;
-  /** Maximum visibility range (metres) */
+  /** Maximum observation range for obstacles (metres) */
   visibilityRange: number;
-  /** Caustic noise intensity (0–1) */
+  /** Caustic noise intensity for browser rendering (0–1) */
   causticIntensity: number;
+  /** Std dev (metres) of Gaussian noise on goal-relative and obstacle features */
+  noiseScale: number;
+  /** Per-slot dropout probability for obstacle features [0, 1) */
+  dropoutProb: number;
 }
+
+// ─── Named Preset Catalogue ───────────────────────────────────────────────────
+
+/** Canonical preset definitions.  The same values are mirrored in world_spec.py. */
+export const DEGRADATION_PRESETS: Record<DegradationPreset, DegradationSpec> = {
+  clear: {
+    preset:          "clear",
+    turbidity:       0.00,
+    visibilityRange: 30.0,
+    causticIntensity: 0.00,
+    noiseScale:      0.00,
+    dropoutProb:     0.00,
+  },
+  mild: {
+    preset:          "mild",
+    turbidity:       0.30,
+    visibilityRange: 18.0,
+    causticIntensity: 0.10,
+    noiseScale:      1.50,
+    dropoutProb:     0.00,
+  },
+  heavy: {
+    preset:          "heavy",
+    turbidity:       0.70,
+    visibilityRange:  8.0,
+    causticIntensity: 0.30,
+    noiseScale:      5.00,
+    dropoutProb:     0.20,
+  },
+};
 
 // ─── Root World Spec ──────────────────────────────────────────────────────────
 
@@ -133,12 +170,7 @@ const DEFAULTS = {
   goal: {
     acceptanceRadius: 1.5,
   },
-  degradation: {
-    preset: "none" as DegradationPreset,
-    turbidity: 0.0,
-    visibilityRange: 30.0,
-    causticIntensity: 0.0,
-  },
+  degradation: DEGRADATION_PRESETS.clear,
 } as const;
 
 // ─── Deterministic Seed Derivation ───────────────────────────────────────────
@@ -185,12 +217,14 @@ function deriveGoalPosition(
  * same world. Sub-seeds (obstacle placement, etc.) are derived from
  * the primary worldSeed so no additional seed management is required.
  *
- * @param seed  Integer world seed. Any 32-bit non-negative integer.
- * @param overrides  Partial overrides applied after deterministic generation.
+ * @param seed             Integer world seed. Any 32-bit non-negative integer.
+ * @param overrides        Partial overrides applied after deterministic generation.
+ * @param degradationPreset Optional named preset to apply (defaults to "clear").
  */
 export function generateWorldSpec(
   seed: number,
-  overrides: Partial<WorldSpec> = {}
+  overrides: Partial<WorldSpec> = {},
+  degradationPreset: DegradationPreset = "clear"
 ): WorldSpec {
   const worldSeed = seed >>> 0; // coerce to uint32
   const obstacleSeed = deriveChildSeed(worldSeed, 1);
@@ -211,7 +245,7 @@ export function generateWorldSpec(
       position: goalPosition,
       acceptanceRadius: DEFAULTS.goal.acceptanceRadius,
     },
-    degradation: { ...DEFAULTS.degradation },
+    degradation: { ...DEGRADATION_PRESETS[degradationPreset] },
     ...overrides,
   };
 

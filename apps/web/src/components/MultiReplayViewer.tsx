@@ -1,29 +1,38 @@
 "use client";
 
 /**
- * MultiReplayViewer — state container for the multi-agent comparison view (Phase 6)
+ * MultiReplayViewer — state container for the multi-agent comparison view (Phase 6 / Phase 7)
  *
- * Responsibilities:
- *   - Load the sample benchmark bundle (config + summaries + replays) on mount
- *   - Build ComparisonAgent[] from loaded replays + agent colour palette
- *   - Own all shared playback state (playing, speed, currentStep, …)
- *   - Render two-column layout:
- *       left  → BenchmarkSummaryPanel + LeaderboardTable
- *       right → ComparisonScene (3D canvas) + ReplayComparisonControls overlay
+ * Phase 7 additions:
+ *   - DegradationSelector: switch between "clear" and "heavy" presets
+ *   - RobustnessPanel: compact Δ table (clear → heavy success rate)
+ *   - Per-preset bundle loading: switching preset reloads config, summaries, and replays
+ *   - BenchmarkSummaryPanel now receives activePreset
  *
- * Stateless children receive only the props they need.
+ * Layout (two-column):
+ *   left  → sidebar: BenchmarkSummaryPanel + DegradationSelector + LeaderboardTable
+ *                     + RobustnessPanel
+ *   right → ComparisonScene (3D canvas) + ReplayComparisonControls overlay
  */
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import type { CSSProperties } from "react";
 
-import { loadSampleBenchmark, agentColor } from "@/lib/sampleBenchmark";
-import type { BenchmarkBundle } from "@/lib/benchmarkLoader";
+import {
+  loadPresetBenchmark,
+  loadSampleRobustnessSummary,
+  agentColor,
+  ROBUSTNESS_PRESETS,
+  type SamplePreset,
+} from "@/lib/sampleBenchmark";
+import type { BenchmarkBundle, RobustnessSummaryRow } from "@/lib/benchmarkLoader";
 import type { ComparisonAgent } from "./ComparisonScene";
 import BenchmarkSummaryPanel from "./BenchmarkSummaryPanel";
 import LeaderboardTable from "./LeaderboardTable";
 import ReplayComparisonControls from "./ReplayComparisonControls";
+import DegradationSelector from "./DegradationSelector";
+import RobustnessPanel from "./RobustnessPanel";
 
 // ─── Lazy-loaded 3D canvas (no SSR — WebGL requires browser) ─────────────────
 
@@ -94,7 +103,6 @@ const STATUS_TEXT: CSSProperties = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Build ComparisonAgent[] from a loaded bundle, skipping agents without replays. */
 function buildComparisonAgents(bundle: BenchmarkBundle): ComparisonAgent[] {
   return bundle.config.agent_ids
     .map((id, i) => {
@@ -108,25 +116,39 @@ function buildComparisonAgents(bundle: BenchmarkBundle): ComparisonAgent[] {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function MultiReplayViewer() {
-  // ── Async bundle state ─────────────────────────────────────────────────────
+  // ── Bundle state ───────────────────────────────────────────────────────────
   const [bundle, setBundle] = useState<BenchmarkBundle | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // ── Degradation state (Phase 7) ────────────────────────────────────────────
+  const [activePreset, setActivePreset] = useState<SamplePreset>("clear");
+  const [robustnessSummary, setRobustnessSummary] = useState<RobustnessSummaryRow[]>([]);
 
   // ── Playback state ─────────────────────────────────────────────────────────
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [currentStep, setCurrentStep] = useState(0);
-  /** Increment to trigger full playback reset inside each AgentPlayback */
   const [playbackKey, setPlaybackKey] = useState(0);
-  /** Increment to snap all agents to seekToStep */
   const [seekVersion, setSeekVersion] = useState(0);
   const [seekToStep, setSeekToStep] = useState(0);
 
-  // ── Load sample benchmark on mount ─────────────────────────────────────────
+  // ── Load robustness summary once on mount ──────────────────────────────────
+  useEffect(() => {
+    loadSampleRobustnessSummary().then((result) => {
+      if (result.success) setRobustnessSummary(result.data);
+    });
+  }, []);
+
+  // ── Load bundle whenever preset changes ───────────────────────────────────
   useEffect(() => {
     setIsLoading(true);
-    loadSampleBenchmark().then((result) => {
+    setPlaying(false);
+    setCurrentStep(0);
+    setSeekToStep(0);
+    setPlaybackKey((k) => k + 1);
+
+    loadPresetBenchmark(activePreset).then((result) => {
       if (result.success) {
         setBundle(result.data);
         setLoadError(null);
@@ -135,20 +157,18 @@ export default function MultiReplayViewer() {
       }
       setIsLoading(false);
     });
-  }, []);
+  }, [activePreset]);
 
   // ── Derived data ───────────────────────────────────────────────────────────
   const comparisonAgents: ComparisonAgent[] = bundle
     ? buildComparisonAgents(bundle)
     : [];
 
-  /** Total steps for the scrubber = longest replay among loaded agents */
   const totalSteps = comparisonAgents.reduce(
     (max, a) => Math.max(max, a.replay.steps.length),
     1
   );
 
-  /** Agent IDs that have loaded replays */
   const loadedAgentIds = comparisonAgents.map((a) => a.agentId);
 
   // ── Playback handlers ──────────────────────────────────────────────────────
@@ -162,10 +182,7 @@ export default function MultiReplayViewer() {
   const handleStepChange = useCallback(
     (step: number) => {
       setCurrentStep(step);
-      // Auto-pause at end of the longest replay
-      if (step >= totalSteps - 1) {
-        setPlaying(false);
-      }
+      if (step >= totalSteps - 1) setPlaying(false);
     },
     [totalSteps]
   );
@@ -175,6 +192,13 @@ export default function MultiReplayViewer() {
     setCurrentStep(step);
     setSeekToStep(step);
     setSeekVersion((v) => v + 1);
+  }, []);
+
+  // Cast is safe: DegradationSelector only fires onChange with presets in `available`
+  const handlePresetChange = useCallback((preset: string) => {
+    if (ROBUSTNESS_PRESETS.includes(preset as SamplePreset)) {
+      setActivePreset(preset as SamplePreset);
+    }
   }, []);
 
   // ── Render: loading ────────────────────────────────────────────────────────
@@ -210,8 +234,22 @@ export default function MultiReplayViewer() {
           config={bundle.config}
           episodeSeed={bundle.episodeSeed}
           agentIds={loadedAgentIds}
+          activePreset={activePreset}
         />
+
+        {/* Degradation preset selector (Phase 7) */}
+        <DegradationSelector
+          active={activePreset}
+          available={[...ROBUSTNESS_PRESETS]}
+          onChange={handlePresetChange}
+        />
+
         <LeaderboardTable summaries={bundle.summaries} />
+
+        {/* Robustness drop table (Phase 7) */}
+        {robustnessSummary.length > 0 && (
+          <RobustnessPanel rows={robustnessSummary} />
+        )}
       </aside>
 
       {/* ── Right: 3D canvas + controls overlay ─────────────────────────── */}

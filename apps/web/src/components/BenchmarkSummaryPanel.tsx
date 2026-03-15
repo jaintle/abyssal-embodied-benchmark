@@ -1,10 +1,11 @@
 "use client";
 
 /**
- * BenchmarkSummaryPanel — benchmark metadata display (Phase 6)
+ * BenchmarkSummaryPanel — benchmark metadata display (Phase 6 / Phase 7)
  *
  * Shows: world seed, episode count, max steps, recorded date,
- * benchmark version, and the comparison episode seed.
+ * benchmark version, the comparison episode seed, and (Phase 7) the
+ * active degradation preset.
  * Stateless — pure display.
  */
 
@@ -17,6 +18,8 @@ export interface BenchmarkSummaryPanelProps {
   episodeSeed: number;
   /** Agent ids with loaded replays (shown as color swatches) */
   agentIds: string[];
+  /** Active degradation preset (Phase 7). Overrides config.degradation_preset. */
+  activePreset?: string;
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -74,16 +77,26 @@ const SWATCH_ROW: CSSProperties = {
   marginTop: 8,
 };
 
+const PRESET_COLORS: Record<string, string> = {
+  clear: "#00ffa0",
+  mild:  "#ffcc44",
+  heavy: "#ff6060",
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BenchmarkSummaryPanel({
   config,
   episodeSeed,
   agentIds,
+  activePreset,
 }: BenchmarkSummaryPanelProps) {
   const date = config.recorded_at
     ? config.recorded_at.slice(0, 10)
     : "—";
+
+  const preset = activePreset ?? config.degradation_preset ?? "clear";
+  const presetColor = PRESET_COLORS[preset] ?? "#7ab8d0";
 
   return (
     <div style={PANEL}>
@@ -110,6 +123,12 @@ export default function BenchmarkSummaryPanel({
       <div style={ROW}>
         <span style={KEY}>recorded</span>
         <span style={VAL}>{date}</span>
+      </div>
+      <div style={ROW}>
+        <span style={KEY}>degradation</span>
+        <span style={{ ...VAL, color: presetColor, fontWeight: "bold" as const }}>
+          {preset.toUpperCase()}
+        </span>
       </div>
 
       <div style={{ ...SUBTITLE, marginTop: 10 }}>comparison episode</div>

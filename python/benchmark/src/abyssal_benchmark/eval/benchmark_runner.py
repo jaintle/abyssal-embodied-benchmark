@@ -1,21 +1,31 @@
 """
-benchmark_runner.py — Generic multi-agent benchmark runner (Phase 5)
+benchmark_runner.py — Generic multi-agent benchmark runner (Phase 5 / updated Phase 7)
 
 Evaluates any number of agents that implement the BenchmarkAgent interface
 on a fixed, identical set of episode seeds.  Produces a standardised result
 bundle:
 
     <output_dir>/
-        benchmark_config.json      — run parameters + agent ids
+        benchmark_config.json      — run parameters + agent ids + degradation preset
         aggregate_summary.csv      — one row per agent
         aggregate_summary.json     — same data, structured
         per_episode.csv            — one row per (agent_id, episode_seed)
         replays/                   — optional: one JSONL per agent (same seed)
 
+Phase 7 additions
+─────────────────
+- degradation_preset parameter on BenchmarkRunner
+- preset is recorded in BenchmarkConfig, AgentBenchmarkSummary, BenchmarkEpisodeResult
+- replay export passes degradation_preset to record_episode
+
 Design
 ──────
 - All agents run on the *identical* seed list.  Comparisons are only valid
-  when world_seed, episode_seeds, and max_steps are held constant.
+  when world_seed, episode_seeds, max_steps, and degradation_preset are
+  held constant.
+- Multi-condition robustness (looping over presets) is orchestrated by the
+  calling CLI (run_benchmark.py), not this class, keeping BenchmarkRunner
+  single-responsibility.
 - No parallelism: episodes run sequentially for exact trajectory capture.
 - replay_seed controls which episode gets exported as a JSONL replay.
   Set to None to skip replay export.
@@ -54,6 +64,7 @@ class BenchmarkEpisodeResult:
     episode_index: int
     episode_seed: int
     world_seed: int
+    degradation_preset: str
     total_reward: float
     steps: int
     final_dist: float
@@ -74,6 +85,7 @@ class BenchmarkEpisodeResult:
 class AgentBenchmarkSummary:
     agent_id: str
     world_seed: int
+    degradation_preset: str
     n_episodes: int
     env_version: str
     benchmark_version: str
@@ -106,6 +118,7 @@ class BenchmarkConfig:
     benchmark_version: str
     env_version: str
     world_seed: int
+    degradation_preset: str
     episode_seeds: List[int]
     n_episodes: int
     max_steps: int
@@ -139,6 +152,9 @@ class BenchmarkRunner:
         If given, export one JSONL replay per agent for the episode whose
         seed equals this value.  Must be one of the derived episode seeds.
         Pass None to skip replay export.
+    degradation_preset:
+        Named degradation preset applied to all episodes.  One of
+        "clear" (default), "mild", or "heavy".
     verbose:
         Print per-episode progress lines if True.
     """
@@ -150,6 +166,7 @@ class BenchmarkRunner:
         max_steps: int = 500,
         base_episode_seed: int = 1000,
         replay_seed: Optional[int] = None,
+        degradation_preset: str = "clear",
         verbose: bool = True,
     ) -> None:
         self.world_seed = world_seed
@@ -157,6 +174,7 @@ class BenchmarkRunner:
         self.max_steps = max_steps
         self.base_episode_seed = base_episode_seed
         self.replay_seed = replay_seed
+        self.degradation_preset = degradation_preset
         self.verbose = verbose
 
     def episode_seeds(self) -> List[int]:
@@ -187,6 +205,7 @@ class BenchmarkRunner:
             benchmark_version=BENCHMARK_VERSION,
             env_version=ENV_VERSION,
             world_seed=self.world_seed,
+            degradation_preset=self.degradation_preset,
             episode_seeds=seeds,
             n_episodes=self.n_episodes,
             max_steps=self.max_steps,
@@ -225,6 +244,7 @@ class BenchmarkRunner:
             print(
                 f"\n── Agent: {policy_id}  "
                 f"world_seed={self.world_seed}  "
+                f"degradation={self.degradation_preset}  "
                 f"n_episodes={self.n_episodes}"
             )
             print(
@@ -267,6 +287,7 @@ class BenchmarkRunner:
                         max_steps=self.max_steps,
                         policy_id=policy_id,
                         env_version=ENV_VERSION,
+                        degradation_preset=self.degradation_preset,
                     )
                 except Exception as exc:  # noqa: BLE001
                     print(f"  [WARN] replay export failed: {exc}")
@@ -274,7 +295,7 @@ class BenchmarkRunner:
         if self.verbose:
             print("─" * 62)
 
-        return self._aggregate(policy_id, episodes)
+        return self._aggregate(policy_id, self.degradation_preset, episodes)
 
     def _run_episode(
         self,
@@ -287,6 +308,7 @@ class BenchmarkRunner:
             world_seed=self.world_seed,
             episode_seed=episode_seed,
             max_steps=self.max_steps,
+            degradation_preset=self.degradation_preset,
         )
 
         t0 = time.monotonic()
@@ -313,6 +335,7 @@ class BenchmarkRunner:
             episode_index=episode_index,
             episode_seed=episode_seed,
             world_seed=self.world_seed,
+            degradation_preset=self.degradation_preset,
             total_reward=round(total_reward, 4),
             steps=steps,
             final_dist=round(float(final_info["dist_to_goal"]), 4),
@@ -328,6 +351,7 @@ class BenchmarkRunner:
     @staticmethod
     def _aggregate(
         policy_id: str,
+        degradation_preset: str,
         episodes: List[BenchmarkEpisodeResult],
     ) -> AgentBenchmarkSummary:
         n = len(episodes)
@@ -347,6 +371,7 @@ class BenchmarkRunner:
         return AgentBenchmarkSummary(
             agent_id=policy_id,
             world_seed=episodes[0].world_seed if episodes else 0,
+            degradation_preset=degradation_preset,
             n_episodes=n,
             env_version=ENV_VERSION,
             benchmark_version=BENCHMARK_VERSION,

@@ -1,5 +1,5 @@
 """
-navigation_env.py — AbyssalNavigationEnv (Phase 2)
+navigation_env.py — AbyssalNavigationEnv (Phase 2 / updated Phase 7)
 
 A Gymnasium environment for deterministic 2-D underwater navigation.
 
@@ -25,6 +25,13 @@ Index   Quantity                        Notes
 8–39    8 nearest obstacles × 4 floats  [rel_x, rel_z, dist, radius]
         Sorted by distance; zero-padded if fewer than 8 obstacles exist.
 
+Degradation (Phase 7)
+---------------------
+When degradation_preset != "clear", the observation returned by step() and
+reset() is corrupted before being returned to the agent.  The raw
+(undegraded) observation is used internally for physics and reward.
+Degradation is deterministic under fixed (episode_seed, step) pairs.
+
 Termination / truncation
 ------------------------
 terminated=True  on goal-reached or collision
@@ -48,6 +55,8 @@ import gymnasium as gym
 from gymnasium import spaces
 
 from .world_gen import GeneratedWorld, PlacedObstacle, generate_world
+from .degradation import apply_observation_degradation
+from ..schemas.world_spec import DEGRADATION_PRESETS, DegradationSpec
 from ..utils.seeding import derive_seed, seed_all
 
 # ─── Physical constants ───────────────────────────────────────────────────────
@@ -99,12 +108,15 @@ class AbyssalNavigationEnv(gym.Env):
         Seed for procedural world generation.  Determines obstacle layout
         and goal position.  Identical seeds produce identical worlds.
     episode_seed:
-        Seed used for any per-episode randomness.  Currently reserved —
-        the agent spawn is deterministic at (0, 0).
+        Seed used for any per-episode randomness.  Used by the degradation
+        pipeline to ensure fully deterministic observation corruption.
     max_steps:
         Hard truncation limit per episode.
     env_version:
         Version string recorded in replay headers.
+    degradation_preset:
+        Named degradation preset applied to observations.  One of
+        "clear" (default), "mild", or "heavy".
     """
 
     metadata: Dict[str, Any] = {"render_modes": []}
@@ -117,13 +129,22 @@ class AbyssalNavigationEnv(gym.Env):
         episode_seed: int = 0,
         max_steps: int = 500,
         env_version: str = "0.1.0",
+        degradation_preset: str = "clear",
     ) -> None:
         super().__init__()
+
+        if degradation_preset not in DEGRADATION_PRESETS:
+            raise ValueError(
+                f"Unknown degradation_preset '{degradation_preset}'. "
+                f"Valid options: {list(DEGRADATION_PRESETS)}"
+            )
 
         self.world_seed = world_seed
         self.episode_seed = episode_seed
         self.max_steps = max_steps
         self.env_version = env_version
+        self.degradation_preset = degradation_preset
+        self._degradation: DegradationSpec = DEGRADATION_PRESETS[degradation_preset]
 
         # Generate world once at construction time
         self.world: GeneratedWorld = generate_world(world_seed)
@@ -229,7 +250,7 @@ class AbyssalNavigationEnv(gym.Env):
         terminated = goal_reached or collision
         truncated = (not terminated) and (timed_out or out_of_bounds)
 
-        # ── Reward ────────────────────────────────────────────────────────
+        # ── Reward (uses raw physics, not degraded obs) ────────────────────
         progress = (self._prev_dist - curr_dist) * PROGRESS_SCALE
         reward = progress + STEP_PENALTY
 
@@ -305,6 +326,7 @@ class AbyssalNavigationEnv(gym.Env):
         return features[:N_OBS_OBSTACLES]
 
     def _make_obs(self) -> np.ndarray:
+        """Build the observation vector and apply degradation if active."""
         obs = np.zeros(OBS_DIM, dtype=np.float32)
 
         px, pz = float(self._pos[0]), float(self._pos[1])
@@ -327,10 +349,19 @@ class AbyssalNavigationEnv(gym.Env):
             self._sorted_obstacle_features()
         ):
             base = 8 + i * 4
-            obs[base] = rel_x
+            obs[base]     = rel_x
             obs[base + 1] = rel_z
             obs[base + 2] = odist
             obs[base + 3] = orad
+
+        # Apply degradation if preset is not "clear"
+        if self.degradation_preset != "clear":
+            obs = apply_observation_degradation(
+                obs,
+                self._degradation,
+                self.episode_seed,
+                self._step,
+            )
 
         return obs
 
@@ -347,6 +378,7 @@ class AbyssalNavigationEnv(gym.Env):
         return {
             "world_seed": self.world_seed,
             "episode_seed": self.episode_seed,
+            "degradation_preset": self.degradation_preset,
             "step": self._step,
             "pos_x": float(self._pos[0]),
             "pos_z": float(self._pos[1]),

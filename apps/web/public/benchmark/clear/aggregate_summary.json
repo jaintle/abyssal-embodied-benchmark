@@ -1,0 +1,38 @@
+[
+  {
+    "agent_id": "heuristic",
+    "world_seed": 42,
+    "degradation_preset": "clear",
+    "n_episodes": 3,
+    "env_version": "0.1.0",
+    "benchmark_version": "0.1.0",
+    "success_rate": 1.0,
+    "collision_rate": 0.0,
+    "timeout_rate": 0.0,
+    "oob_rate": 0.0,
+    "mean_reward": 52.66,
+    "std_reward": 0.0,
+    "mean_steps": 68.0,
+    "std_steps": 0.0,
+    "mean_final_dist": 1.47,
+    "std_final_dist": 0.0
+  },
+  {
+    "agent_id": "random",
+    "world_seed": 42,
+    "degradation_preset": "clear",
+    "n_episodes": 3,
+    "env_version": "0.1.0",
+    "benchmark_version": "0.1.0",
+    "success_rate": 0.0,
+    "collision_rate": 0.0,
+    "timeout_rate": 0.0,
+    "oob_rate": 1.0,
+    "mean_reward": -36.5,
+    "std_reward": 0.0,
+    "mean_steps": 141.0,
+    "std_steps": 0.0,
+    "mean_final_dist": 70.22,
+    "std_final_dist": 0.0
+  }
+]

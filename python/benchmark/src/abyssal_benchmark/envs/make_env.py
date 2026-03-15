@@ -20,6 +20,7 @@ Or via the factory directly::
     from abyssal_benchmark.envs.make_env import make_env
 
     env = make_env(world_seed=99, max_steps=300)
+    env = make_env(world_seed=99, max_steps=300, degradation_preset="heavy")
 """
 
 from __future__ import annotations
@@ -68,6 +69,7 @@ def make_env(
     episode_seed: int = 0,
     max_steps: int = 500,
     env_version: str = "0.1.0",
+    degradation_preset: str = "clear",
     config_overrides: Optional[Dict[str, Any]] = None,
 ) -> AbyssalNavigationEnv:
     """
@@ -77,12 +79,14 @@ def make_env(
     It ensures seeds are explicit, documented, and logged.
 
     Args:
-        world_seed:       Procedural world seed (determines geometry).
-        episode_seed:     Per-episode randomness seed (reserved for future use).
-        max_steps:        Hard step limit per episode.
-        env_version:      Env contract version string for replay headers.
-        config_overrides: Optional dict of additional kwargs forwarded to
-                          AbyssalNavigationEnv.__init__.
+        world_seed:          Procedural world seed (determines geometry).
+        episode_seed:        Per-episode randomness seed.
+        max_steps:           Hard step limit per episode.
+        env_version:         Env contract version string for replay headers.
+        degradation_preset:  Named degradation preset applied to observations.
+                             One of "clear" (default), "mild", or "heavy".
+        config_overrides:    Optional dict of additional kwargs forwarded to
+                             AbyssalNavigationEnv.__init__.
 
     Returns:
         A fully initialised, non-reset AbyssalNavigationEnv.
@@ -92,6 +96,7 @@ def make_env(
         "episode_seed": episode_seed,
         "max_steps": max_steps,
         "env_version": env_version,
+        "degradation_preset": degradation_preset,
     }
     if config_overrides:
         kwargs.update(config_overrides)

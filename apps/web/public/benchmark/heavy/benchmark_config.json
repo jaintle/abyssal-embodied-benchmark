@@ -1,0 +1,12 @@
+{
+  "benchmark_version": "0.1.0",
+  "env_version": "0.1.0",
+  "world_seed": 42,
+  "degradation_preset": "heavy",
+  "episode_seeds": [1338301409, 1568332424, 1798246544],
+  "n_episodes": 3,
+  "max_steps": 200,
+  "agent_ids": ["heuristic", "random"],
+  "recorded_at": "2026-03-15T12:00:00Z",
+  "git_commit": null
+}

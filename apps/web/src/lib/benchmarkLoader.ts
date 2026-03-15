@@ -27,6 +27,8 @@ import {
 export interface AgentSummary {
   agent_id: string;
   world_seed: number;
+  /** Named degradation preset (Phase 7). Absent in Phase 5/6 bundles — treat as "clear". */
+  degradation_preset?: string;
   n_episodes: number;
   benchmark_version: string;
   env_version: string;
@@ -47,12 +49,37 @@ export interface BenchmarkConfig {
   benchmark_version: string;
   env_version: string;
   world_seed: number;
+  /** Named degradation preset (Phase 7). Absent in Phase 5/6 bundles — treat as "clear". */
+  degradation_preset?: string;
   episode_seeds: number[];
   n_episodes: number;
   max_steps: number;
   agent_ids: string[];
   recorded_at: string;
   git_commit: string | null;
+}
+
+/**
+ * One row from robustness_summary.json — one row per (degradation_preset, agent_id).
+ * Phase 7 only.
+ */
+export interface RobustnessSummaryRow {
+  degradation_preset: string;
+  agent_id: string;
+  world_seed: number;
+  n_episodes: number;
+  success_rate: number;
+  collision_rate: number;
+  timeout_rate: number;
+  oob_rate: number;
+  mean_reward: number;
+  std_reward: number;
+  mean_steps: number;
+  std_steps: number;
+  mean_final_dist: number;
+  std_final_dist: number;
+  benchmark_version: string;
+  env_version: string;
 }
 
 /** A fully loaded and validated benchmark bundle. */
@@ -231,4 +258,15 @@ async function fetchJson<T>(path: string): Promise<LoadResult<T>> {
 
 function makeZodError(message: string) {
   return { message } as unknown as import("zod").ZodError;
+}
+
+// ─── Robustness summary loader (Phase 7) ──────────────────────────────────────
+
+/**
+ * Load robustness_summary.json — all agents × all presets in one flat array.
+ */
+export async function loadRobustnessSummary(
+  path: string
+): Promise<LoadResult<RobustnessSummaryRow[]>> {
+  return fetchJson<RobustnessSummaryRow[]>(path);
 }

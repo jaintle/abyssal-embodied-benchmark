@@ -62,7 +62,7 @@ def _minimal_valid_dict() -> dict:
         "obstacles": _minimal_obstacle(),
         "goal": _minimal_goal(),
         "degradation": {
-            "preset": "none",
+            "preset": "clear",
             "turbidity": 0.0,
             "visibilityRange": 30.0,
             "causticIntensity": 0.0,
@@ -102,7 +102,7 @@ class TestWorldSpecMinimalValid:
 
     def test_degradation_preset(self):
         spec = validate_world_spec(_minimal_valid_dict())
-        assert spec.degradation.preset == "none"
+        assert spec.degradation.preset == "clear"
 
 
 class TestWorldSpecMissingFields:
@@ -205,10 +205,10 @@ class TestGenerateWorldSpec:
 
     def test_override_applied(self):
         custom_degradation = DegradationSpec(
-            preset="high_turbidity",
+            preset="heavy",
             turbidity=0.8,
             visibilityRange=10.0,
             causticIntensity=0.3,
         )
         spec = generate_world_spec(7, degradation=custom_degradation)
-        assert spec.degradation.preset == "high_turbidity"
+        assert spec.degradation.preset == "heavy"

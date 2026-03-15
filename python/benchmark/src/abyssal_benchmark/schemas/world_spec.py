@@ -1,5 +1,5 @@
 """
-World Specification Schema — Phase 0 (Python mirror)
+World Specification Schema — Phase 0 / updated Phase 7
 
 Mirrors packages/worldgen/src/worldSpec.ts exactly.
 All field names, types, and semantics must remain in sync with the
@@ -57,22 +57,58 @@ class GoalSpec(BaseModel):
     acceptanceRadius: Annotated[float, Field(gt=0.0, description="Acceptance zone radius (metres)")] = 1.5
 
 
-DegradationPreset = Literal[
-    "none",
-    "low_turbidity",
-    "high_turbidity",
-    "caustic_noise",
-    "low_visibility",
-]
+# ─── Degradation ─────────────────────────────────────────────────────────────
+
+DegradationPreset = Literal["clear", "mild", "heavy"]
 
 
 class DegradationSpec(BaseModel):
-    """Visual degradation configuration for one benchmark episode."""
+    """
+    Visual degradation configuration for one benchmark episode.
 
-    preset: DegradationPreset = "none"
-    turbidity: Annotated[float, Field(ge=0.0, le=1.0, description="Turbidity coefficient (0–1)")] = 0.0
-    visibilityRange: Annotated[float, Field(gt=0.0, description="Maximum visibility range (metres)")] = 30.0
-    causticIntensity: Annotated[float, Field(ge=0.0, le=1.0, description="Caustic noise intensity (0–1)")] = 0.0
+    Rendering fields (turbidity, causticIntensity) control the browser
+    visual presentation.  Observation fields (noiseScale, visibilityRange,
+    dropoutProb) directly corrupt the feature vector seen by the agent.
+
+    Mirrors TypeScript DegradationSpec in packages/worldgen/src/worldSpec.ts.
+    """
+
+    preset: DegradationPreset = "clear"
+    turbidity: Annotated[float, Field(ge=0.0, le=1.0, description="Turbidity coefficient (0-1)")] = 0.0
+    visibilityRange: Annotated[float, Field(gt=0.0, description="Max observation range for obstacles (metres)")] = 30.0
+    causticIntensity: Annotated[float, Field(ge=0.0, le=1.0, description="Caustic noise intensity (0-1)")] = 0.0
+    noiseScale: Annotated[float, Field(ge=0.0, description="Std dev (metres) of Gaussian noise on positional features")] = 0.0
+    dropoutProb: Annotated[float, Field(ge=0.0, le=1.0, description="Per-slot obstacle dropout probability")] = 0.0
+
+
+# ─── Named Preset Catalogue ──────────────────────────────────────────────────
+
+DEGRADATION_PRESETS: dict = {
+    "clear": DegradationSpec(
+        preset="clear",
+        turbidity=0.00,
+        visibilityRange=30.0,
+        causticIntensity=0.00,
+        noiseScale=0.00,
+        dropoutProb=0.00,
+    ),
+    "mild": DegradationSpec(
+        preset="mild",
+        turbidity=0.30,
+        visibilityRange=18.0,
+        causticIntensity=0.10,
+        noiseScale=1.50,
+        dropoutProb=0.00,
+    ),
+    "heavy": DegradationSpec(
+        preset="heavy",
+        turbidity=0.70,
+        visibilityRange=8.0,
+        causticIntensity=0.30,
+        noiseScale=5.00,
+        dropoutProb=0.20,
+    ),
+}
 
 
 # ─── Root World Spec ──────────────────────────────────────────────────────────
@@ -131,21 +167,33 @@ def _derive_goal_position(world_seed: int, world_radius: float) -> Position3:
 
 # ─── Public Generator ─────────────────────────────────────────────────────────
 
-def generate_world_spec(seed: int, **overrides: object) -> WorldSpec:
+def generate_world_spec(
+    seed: int,
+    degradation_preset: str = "clear",
+    **overrides: object,
+) -> WorldSpec:
     """
     Generate a fully-populated WorldSpec from a single integer seed.
 
     Mirrors generateWorldSpec() in packages/worldgen/src/worldSpec.ts.
 
     Args:
-        seed:      Integer world seed (any non-negative 32-bit integer).
-        **overrides: Keyword overrides applied after deterministic generation.
-                     Top-level fields only; nested structures must be replaced
-                     as complete sub-model instances.
+        seed:               Integer world seed (any non-negative 32-bit integer).
+        degradation_preset: Named degradation preset ("clear", "mild", "heavy").
+                            Defaults to "clear" (no degradation).
+        **overrides:        Keyword overrides applied after deterministic generation.
+                            Top-level fields only; nested structures must be replaced
+                            as complete sub-model instances.
 
     Returns:
         A fully validated WorldSpec.
     """
+    if degradation_preset not in DEGRADATION_PRESETS:
+        raise ValueError(
+            f"Unknown degradation_preset '{degradation_preset}'. "
+            f"Valid options: {list(DEGRADATION_PRESETS)}"
+        )
+
     world_seed = seed & 0x7FFF_FFFF  # clamp to 31-bit unsigned
     obstacle_seed = _derive_child_seed(world_seed, 1)
     goal_position = _derive_goal_position(world_seed, 50.0)
@@ -157,7 +205,7 @@ def generate_world_spec(seed: int, **overrides: object) -> WorldSpec:
         "terrain": TerrainSpec(),
         "obstacles": ObstacleSpec(obstacleSeed=obstacle_seed),
         "goal": GoalSpec(position=goal_position),
-        "degradation": DegradationSpec(),
+        "degradation": DEGRADATION_PRESETS[degradation_preset],
         **overrides,
     }
     return WorldSpec.model_validate(data)

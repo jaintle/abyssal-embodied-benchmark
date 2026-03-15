@@ -1,8 +1,13 @@
 """
-replay_export.py — Episode replay recorder and exporter (Phase 3)
+replay_export.py — Episode replay recorder and exporter (Phase 3 / updated Phase 7)
 
 Records a single full episode trajectory and serialises it as a ReplayFile
 using the shared replay schema (JSONL format).
+
+Phase 7 addition: degradation_preset is passed through to make_env so that
+the recorded trajectory reflects the degraded observation the agent actually
+received.  The degradation preset is also written into the replay header so
+the web UI can display the correct condition.
 
 2-D to 3-D mapping
 ──────────────────
@@ -47,6 +52,7 @@ def record_episode(
     max_steps: int = 500,
     policy_id: str = "unknown",
     env_version: str = "0.1.0",
+    degradation_preset: str = "clear",
     deterministic: bool = True,
 ) -> ReplayFile:
     """
@@ -59,13 +65,15 @@ def record_episode(
     world_seed:
         World generation seed.
     episode_seed:
-        Per-episode seed (recorded in header; reserved for future use).
+        Per-episode seed (recorded in header).
     max_steps:
         Episode truncation limit.
     policy_id:
         Human-readable policy identifier written to the header.
     env_version:
         Env version string written to the header.
+    degradation_preset:
+        Named degradation preset applied to observations.
     deterministic:
         Whether to use the policy's deterministic action.
 
@@ -78,6 +86,7 @@ def record_episode(
         world_seed=world_seed,
         episode_seed=episode_seed,
         max_steps=max_steps,
+        degradation_preset=degradation_preset,
     )
 
     recorded_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -109,7 +118,7 @@ def record_episode(
         act_z = float(action[1])
 
         step = ReplayStep(
-            timestep=len(steps),  # 0-based replay index (info["step"] is post-increment)
+            timestep=len(steps),  # 0-based replay index
             position=(pos_x, 0.0, pos_z),
             velocity=(vel_x, 0.0, vel_z),
             reward=float(reward),
@@ -134,6 +143,7 @@ def export_episode(
     max_steps: int = 500,
     policy_id: str = "unknown",
     env_version: str = "0.1.0",
+    degradation_preset: str = "clear",
     deterministic: bool = True,
 ) -> ReplayFile:
     """
@@ -150,6 +160,7 @@ def export_episode(
         max_steps=max_steps,
         policy_id=policy_id,
         env_version=env_version,
+        degradation_preset=degradation_preset,
         deterministic=deterministic,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
