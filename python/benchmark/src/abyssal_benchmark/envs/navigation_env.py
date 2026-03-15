@@ -1,5 +1,5 @@
 """
-navigation_env.py — AbyssalNavigationEnv (Phase 2 / updated Phase 7)
+navigation_env.py — AbyssalNavigationEnv (Phase 2 / updated Phase 7 / updated Phase 8)
 
 A Gymnasium environment for deterministic 2-D underwater navigation.
 
@@ -70,6 +70,16 @@ AGENT_RADIUS: float = 0.3  # agent collision sphere radius (metres)
 
 N_OBS_OBSTACLES: int = 8   # number of obstacle slots in observation
 OBS_DIM: int = 8 + N_OBS_OBSTACLES * 4  # 8 + 32 = 40
+OBS_DIM_WITH_UNCERTAINTY: int = OBS_DIM + 1    # 41: includes visibility quality scalar
+
+# ─── Uncertainty signal: visibility quality per degradation preset ────────────
+# Scalar in [0, 1] appended at obs[40] when uncertainty_obs=True.
+# Derived from preset name — deterministic and constant within an episode.
+VISIBILITY_QUALITY: dict = {
+    "clear": 1.0,
+    "mild":  0.6,
+    "heavy": 0.2,
+}
 
 # ─── Reward constants ─────────────────────────────────────────────────────────
 
@@ -117,6 +127,11 @@ class AbyssalNavigationEnv(gym.Env):
     degradation_preset:
         Named degradation preset applied to observations.  One of
         "clear" (default), "mild", or "heavy".
+    uncertainty_obs:
+        When True, appends a scalar visibility quality signal at obs[40],
+        extending observation size from 40 to 41 dimensions.  The value is
+        derived from degradation_preset via VISIBILITY_QUALITY and is
+        constant within an episode.  Default False (backward compat).
     """
 
     metadata: Dict[str, Any] = {"render_modes": []}
@@ -130,6 +145,7 @@ class AbyssalNavigationEnv(gym.Env):
         max_steps: int = 500,
         env_version: str = "0.1.0",
         degradation_preset: str = "clear",
+        uncertainty_obs: bool = False,
     ) -> None:
         super().__init__()
 
@@ -144,7 +160,9 @@ class AbyssalNavigationEnv(gym.Env):
         self.max_steps = max_steps
         self.env_version = env_version
         self.degradation_preset = degradation_preset
+        self.uncertainty_obs = uncertainty_obs
         self._degradation: DegradationSpec = DEGRADATION_PRESETS[degradation_preset]
+        self._visibility_quality: float = VISIBILITY_QUALITY.get(degradation_preset, 1.0)
 
         # Generate world once at construction time
         self.world: GeneratedWorld = generate_world(world_seed)
@@ -156,9 +174,15 @@ class AbyssalNavigationEnv(gym.Env):
             shape=(2,),
             dtype=np.float32,
         )
+        # Observation bounds — extend by 1 when uncertainty_obs=True
+        if uncertainty_obs:
+            obs_low = np.append(_OBS_LOW, 0.0).astype(np.float32)
+            obs_high = np.append(_OBS_HIGH, 1.0).astype(np.float32)
+        else:
+            obs_low, obs_high = _OBS_LOW, _OBS_HIGH
         self.observation_space = spaces.Box(
-            low=_OBS_LOW,
-            high=_OBS_HIGH,
+            low=obs_low,
+            high=obs_high,
             dtype=np.float32,
         )
 
@@ -363,6 +387,10 @@ class AbyssalNavigationEnv(gym.Env):
                 self._step,
             )
 
+        # Append visibility quality scalar (Phase 8)
+        if self.uncertainty_obs:
+            obs = np.append(obs, np.float32(self._visibility_quality))
+
         return obs
 
     def _make_info(
@@ -379,6 +407,8 @@ class AbyssalNavigationEnv(gym.Env):
             "world_seed": self.world_seed,
             "episode_seed": self.episode_seed,
             "degradation_preset": self.degradation_preset,
+            "visibility_quality": self._visibility_quality,
+            "uncertainty_obs": self.uncertainty_obs,
             "step": self._step,
             "pos_x": float(self._pos[0]),
             "pos_z": float(self._pos[1]),

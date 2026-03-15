@@ -10,6 +10,7 @@
 import type { CSSProperties } from "react";
 import type { AgentSummary } from "@/lib/benchmarkLoader";
 import { agentColor } from "@/lib/sampleBenchmark";
+import AgentBehaviorBadge from "./AgentBehaviorBadge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -156,6 +157,7 @@ export default function LeaderboardTable({ summaries }: LeaderboardTableProps) {
             <th style={TH}>tout</th>
             <th style={TH}>reward</th>
             <th style={TH}>steps</th>
+            <th style={TH}>speed</th>
             <th style={TH}>dist</th>
           </tr>
         </thead>
@@ -167,6 +169,7 @@ export default function LeaderboardTable({ summaries }: LeaderboardTableProps) {
                 <td style={TD_FIRST}>
                   <OutcomeDot color={color} label={s.agent_id} />
                   <span style={{ color }}>{s.agent_id}</span>
+                  <AgentBehaviorBadge agentId={s.agent_id} />
                   {rank === 0 && (
                     <span style={{ color: "#00ffa0", marginLeft: 5, fontSize: "0.6rem" }}>★</span>
                   )}
@@ -182,6 +185,7 @@ export default function LeaderboardTable({ summaries }: LeaderboardTableProps) {
                   {s.mean_reward >= 0 ? "+" : ""}{fmt(s.mean_reward)}
                 </td>
                 <td style={TD_BASE}>{fmt(s.mean_steps, 0)}</td>
+                <td style={TD_BASE}>{s.mean_action_magnitude !== undefined ? fmt(s.mean_action_magnitude) : "—"}</td>
                 <td style={tdStyle(s.mean_final_dist, best.dist, worst.dist, false)}>
                   {fmt(s.mean_final_dist)}
                 </td>

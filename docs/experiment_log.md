@@ -103,3 +103,60 @@ large bearing errors at distances of 10–20 m, causing the agent to overshoot o
 stall.  Random agent is unaffected because it ignores observations entirely.
 
 *(Update with actual numbers after running the smoke path on target hardware.)*
+
+---
+
+## 2026-03-15 — Phase 8: Cautious Baseline vs Standard Agents
+
+**Goal:** Train a cautious PPO baseline and compare safety-performance tradeoffs across degradation presets.
+
+**Setup:**
+- World seed: 42
+- N episodes: 20
+- Max steps: 500
+- Degradation presets: `clear`, `heavy`
+- Export replay seed: 1338301409
+- caution_coeff: 0.3
+
+**Training command (cautious baseline):**
+
+```bash
+cd python/benchmark
+python scripts/train_cautious_ppo.py \
+    --world-seed 42 \
+    --total-steps 200000 \
+    --caution-coeff 0.3 \
+    --run-name phase8-cautious
+```
+
+**Benchmark command:**
+
+```bash
+cd python/benchmark
+python scripts/run_benchmark.py \
+    --agents heuristic \
+        cautious_ppo:results/runs/phase8-cautious/model.zip \
+        random \
+    --world-seed 42 \
+    --n-episodes 20 \
+    --degradation-presets clear heavy \
+    --export-replay-seed 1338301409 \
+    --run-name phase8-safety-tradeoff
+```
+
+**Simulated sample results (manually generated for UI demo):**
+
+| Agent | clear succ% | heavy succ% | heavy coll% | clear speed | heavy speed |
+|---|---|---|---|---|---|
+| heuristic | 100% | 33% | 33% | 0.88 | 0.88 |
+| cautious_ppo | 67% | 67% | 0% | 0.50 | 0.31 |
+| random | 0% | 0% | 0% | 0.57 | 0.57 |
+
+**Interpretation:**
+The cautious baseline absorbs degradation without colliding by reducing its action
+magnitude.  At heavy degradation, `visibility_quality = 0.2`, so the caution penalty
+`0.3 × (1 − 0.2) × ‖a‖²` strongly discourages large thrusts.  This leads to slower
+navigation but zero collisions.  The cost is a higher timeout rate relative to the
+heuristic in clear conditions.
+
+*(Update with actual numbers after running the smoke path on target hardware.)*

@@ -42,6 +42,8 @@ export interface AgentSummary {
   std_steps: number;
   mean_final_dist: number;
   std_final_dist: number;
+  /** Mean L2 norm of actions per episode (Phase 8). Shows behavioral conservatism. */
+  mean_action_magnitude?: number;
 }
 
 /** Contents of benchmark_config.json */
@@ -78,6 +80,8 @@ export interface RobustnessSummaryRow {
   std_steps: number;
   mean_final_dist: number;
   std_final_dist: number;
+  /** Mean L2 norm of actions per episode (Phase 8). */
+  mean_action_magnitude?: number;
   benchmark_version: string;
   env_version: string;
 }

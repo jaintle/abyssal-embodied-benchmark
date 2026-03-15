@@ -27,10 +27,12 @@ Robustness evaluation across presets:
 
 Agent specifiers
 ────────────────
-    random              — RandomAgent (seed 0)
-    heuristic           — HeuristicAgent
-    ppo:<path>          — PPOAgent loaded from checkpoint at <path>
-    ppo:<path>:<id>     — PPOAgent with a custom policy_id label
+    random                    — RandomAgent (seed 0)
+    heuristic                 — HeuristicAgent
+    ppo:<path>                — PPOAgent loaded from checkpoint at <path>
+    ppo:<path>:<id>           — PPOAgent with a custom policy_id label
+    cautious_ppo:<path>       — CautiousAgent loaded from checkpoint
+    cautious_ppo:<path>:<id>  — CautiousAgent with a custom policy_id label
 
 Output bundle (single preset)
 ──────────────────────────────
@@ -78,9 +80,10 @@ from abyssal_benchmark.agents.random_agent import RandomAgent
 from abyssal_benchmark.agents.heuristic_agent import HeuristicAgent
 from abyssal_benchmark.envs.make_env import make_env
 
-# PPOAgent requires stable-baselines3 — import lazily
+# PPOAgent / CautiousAgent require stable-baselines3 — import lazily
 try:
     from abyssal_benchmark.agents.ppo_agent import PPOAgent
+    from abyssal_benchmark.agents.cautious_agent import CautiousAgent
     _HAS_SB3 = True
 except ImportError:
     _HAS_SB3 = False
@@ -98,10 +101,12 @@ def _build_agent(spec: str, world_seed: int, max_steps: int) -> object:
     Parse an agent specifier string and return a BenchmarkAgent.
 
     Supported specifiers:
-        random              → RandomAgent
-        heuristic           → HeuristicAgent
-        ppo:<path>          → PPOAgent loaded from <path>
-        ppo:<path>:<id>     → PPOAgent with custom policy_id
+        random                    → RandomAgent
+        heuristic                 → HeuristicAgent
+        ppo:<path>                → PPOAgent loaded from <path>
+        ppo:<path>:<id>           → PPOAgent with custom policy_id
+        cautious_ppo:<path>       → CautiousAgent loaded from <path>
+        cautious_ppo:<path>:<id>  → CautiousAgent with custom policy_id
     """
     parts = spec.split(":", maxsplit=2)
     kind = parts[0].lower()
@@ -131,9 +136,33 @@ def _build_agent(spec: str, world_seed: int, max_steps: int) -> object:
 
         return PPOAgent.load(model_path, env_factory=_env_factory, policy_id=policy_id)
 
+    if kind == "cautious_ppo":
+        if not _HAS_SB3:
+            raise ImportError(
+                "CautiousAgent requires stable-baselines3 (pip install stable-baselines3)"
+            )
+        if len(parts) < 2:
+            raise ValueError("cautious_ppo agent specifier must include a path: cautious_ppo:<path>")
+        model_path = Path(parts[1])
+        if not model_path.exists():
+            model_path = _REPO_ROOT / parts[1]
+        if not model_path.exists():
+            raise FileNotFoundError(f"Cautious PPO model not found: {parts[1]}")
+        policy_id = parts[2] if len(parts) >= 3 else "cautious_ppo"
+
+        def _cautious_env_factory():
+            # CautiousAgent requires uncertainty_obs=True (41-dim obs)
+            return make_env(
+                world_seed=world_seed,
+                max_steps=max_steps,
+                uncertainty_obs=True,
+            )
+
+        return CautiousAgent.load(model_path, env_factory=_cautious_env_factory, policy_id=policy_id)
+
     raise ValueError(
         f"Unknown agent specifier: '{spec}'. "
-        "Supported: random, heuristic, ppo:<path>, ppo:<path>:<id>"
+        "Supported: random, heuristic, ppo:<path>, cautious_ppo:<path>"
     )
 
 
@@ -319,6 +348,7 @@ def _write_robustness_summary(summaries: list, output_dir: Path) -> None:
             "std_steps": s.std_steps,
             "mean_final_dist": s.mean_final_dist,
             "std_final_dist": s.std_final_dist,
+            "mean_action_magnitude": getattr(s, "mean_action_magnitude", 0.0),
             "benchmark_version": s.benchmark_version,
             "env_version": s.env_version,
         })

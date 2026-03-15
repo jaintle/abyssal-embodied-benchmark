@@ -104,3 +104,13 @@ class BenchmarkAgent(abc.ABC):
 
         Default implementation is a no-op; override for stateful agents.
         """
+
+    @property
+    def requires_uncertainty_obs(self) -> bool:
+        """
+        Return True if this agent requires the extended 41-dim observation
+        (i.e. uncertainty_obs=True on the env).
+
+        Default: False.  CautiousAgent overrides to True.
+        """
+        return False

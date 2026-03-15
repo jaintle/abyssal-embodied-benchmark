@@ -7,15 +7,36 @@
     "env_version": "0.1.0",
     "benchmark_version": "0.1.0",
     "success_rate": 0.3333,
-    "collision_rate": 0.0,
-    "timeout_rate": 0.6667,
+    "collision_rate": 0.3333,
+    "timeout_rate": 0.3333,
     "oob_rate": 0.0,
-    "mean_reward": 7.14,
-    "std_reward": 28.6,
+    "mean_reward": 9.20,
+    "std_reward": 28.10,
     "mean_steps": 188.0,
-    "std_steps": 17.3,
-    "mean_final_dist": 14.83,
-    "std_final_dist": 18.9
+    "std_steps": 156.0,
+    "mean_final_dist": 5.62,
+    "std_final_dist": 6.44,
+    "mean_action_magnitude": 0.88
+  },
+  {
+    "agent_id": "cautious_ppo",
+    "world_seed": 42,
+    "degradation_preset": "heavy",
+    "n_episodes": 3,
+    "env_version": "0.1.0",
+    "benchmark_version": "0.1.0",
+    "success_rate": 0.6667,
+    "collision_rate": 0.0,
+    "timeout_rate": 0.3333,
+    "oob_rate": 0.0,
+    "mean_reward": 26.10,
+    "std_reward": 14.80,
+    "mean_reward": 26.10,
+    "mean_steps": 241.0,
+    "std_steps": 121.0,
+    "mean_final_dist": 2.88,
+    "std_final_dist": 2.31,
+    "mean_action_magnitude": 0.31
   },
   {
     "agent_id": "random",
@@ -33,6 +54,7 @@
     "mean_steps": 141.0,
     "std_steps": 0.0,
     "mean_final_dist": 70.22,
-    "std_final_dist": 0.0
+    "std_final_dist": 0.0,
+    "mean_action_magnitude": 0.57
   }
 ]

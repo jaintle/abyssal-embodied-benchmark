@@ -54,8 +54,8 @@ export const PRESET_SUMMARY_PATHS: Record<SamplePreset, string> = {
   heavy: `${BASE}/heavy/aggregate_summary.json`,
 };
 
-/** Agents in the robustness bundle (ppo not present in Phase 7 run) */
-const ROBUSTNESS_AGENTS = ["heuristic", "random"] as const;
+/** Agents in the robustness bundle (Phase 7: heuristic+random; Phase 8: +cautious_ppo) */
+const ROBUSTNESS_AGENTS = ["heuristic", "cautious_ppo", "random"] as const;
 
 export function presetReplayPaths(preset: SamplePreset): Record<string, string> {
   return Object.fromEntries(
@@ -107,9 +107,10 @@ export async function loadSampleRobustnessSummary(): Promise<
 
 /** Consistent agent color map used by both the leaderboard and the 3D scene */
 export const AGENT_COLORS: Record<string, string> = {
-  heuristic: "#00ffa0",   // teal-green
-  ppo:       "#4ab8ff",   // sky-blue
-  random:    "#ff6060",   // coral-red
+  heuristic:    "#00ffa0",   // teal-green
+  ppo:          "#4ab8ff",   // sky-blue
+  cautious_ppo: "#ffcc44",   // amber — signals cautious/safe behaviour
+  random:       "#ff6060",   // coral-red
 };
 
 /** Fallback colors for agents not in AGENT_COLORS */

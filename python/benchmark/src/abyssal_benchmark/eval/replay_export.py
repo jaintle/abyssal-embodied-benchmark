@@ -53,6 +53,7 @@ def record_episode(
     policy_id: str = "unknown",
     env_version: str = "0.1.0",
     degradation_preset: str = "clear",
+    uncertainty_obs: bool = False,
     deterministic: bool = True,
 ) -> ReplayFile:
     """
@@ -87,6 +88,7 @@ def record_episode(
         episode_seed=episode_seed,
         max_steps=max_steps,
         degradation_preset=degradation_preset,
+        uncertainty_obs=uncertainty_obs,
     )
 
     recorded_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -144,6 +146,7 @@ def export_episode(
     policy_id: str = "unknown",
     env_version: str = "0.1.0",
     degradation_preset: str = "clear",
+    uncertainty_obs: bool = False,
     deterministic: bool = True,
 ) -> ReplayFile:
     """
@@ -161,6 +164,7 @@ def export_episode(
         policy_id=policy_id,
         env_version=env_version,
         degradation_preset=degradation_preset,
+        uncertainty_obs=uncertainty_obs,
         deterministic=deterministic,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -33,6 +33,7 @@ import LeaderboardTable from "./LeaderboardTable";
 import ReplayComparisonControls from "./ReplayComparisonControls";
 import DegradationSelector from "./DegradationSelector";
 import RobustnessPanel from "./RobustnessPanel";
+import SafetyTradeoffPanel from "./SafetyTradeoffPanel";
 
 // ─── Lazy-loaded 3D canvas (no SSR — WebGL requires browser) ─────────────────
 
@@ -249,6 +250,14 @@ export default function MultiReplayViewer() {
         {/* Robustness drop table (Phase 7) */}
         {robustnessSummary.length > 0 && (
           <RobustnessPanel rows={robustnessSummary} />
+        )}
+
+        {/* Safety-performance tradeoff (Phase 8) */}
+        {robustnessSummary.length > 0 && (
+          <SafetyTradeoffPanel
+            rows={robustnessSummary}
+            activePreset={activePreset}
+          />
         )}
       </aside>
 

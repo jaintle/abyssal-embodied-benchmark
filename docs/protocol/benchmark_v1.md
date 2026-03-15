@@ -189,3 +189,66 @@ Flat array of rows with the full `AgentBenchmarkSummary` fields plus
 - Random baselines use `np.random.default_rng(seed)` seeded per agent instance.
 - Observation degradation RNG is seeded as `(episode_seed * 1_000_003 + step) & 0x7FFF_FFFF`,
   ensuring reproducibility independent of global Python / NumPy state.
+
+---
+
+## Uncertainty Signal and Cautious Baseline (Phase 8)
+
+### Uncertainty observation signal
+
+When `uncertainty_obs=True` on `AbyssalNavigationEnv`, the observation
+vector is extended from 40 → 41 dimensions.  The new scalar at `obs[40]`
+is the **visibility quality**:
+
+| Preset | `visibility_quality` |
+|---|---|
+| `clear` | 1.0 |
+| `mild`  | 0.6 |
+| `heavy` | 0.2 |
+
+This signal is:
+- deterministic and constant within an episode
+- derived purely from the degradation preset name
+- backward-compatible: standard PPO runs with `uncertainty_obs=False` (40-dim obs) unchanged
+
+### Cautious baseline design
+
+`CautiousAgent` is a PPO model trained with:
+
+1. `uncertainty_obs=True` — the policy sees `visibility_quality` and can condition on it
+2. `CautiousRewardWrapper` — adds a reward penalty during training:
+
+```
+r_total = r_env  −  caution_coeff × (1 − visibility_quality) × ‖action‖²
+```
+
+Default `caution_coeff = 0.3`.  This teaches the policy to take smaller
+actions when visibility is poor.  No inference-time scaling is applied — the
+conservative behaviour is fully encoded in the trained weights.
+
+The `cautious_ppo:<path>` agent specifier in `run_benchmark.py` automatically:
+- sets `uncertainty_obs=True` on the evaluation env
+- loads the checkpoint with the correct obs shape (41-dim)
+
+### Safety-performance tradeoff metrics
+
+`mean_action_magnitude` is now recorded per agent per episode (L2 norm of
+the action vector, averaged over steps).  This metric directly shows
+behavioural conservatism:
+
+- `heuristic`: ~0.88 (always near-maximum thrust)
+- `ppo`:       ~0.70 (learned to modulate)
+- `cautious_ppo`: ~0.50 clear / ~0.31 heavy (significantly reduced under degradation)
+
+The tradeoff framing:
+
+| Agent | clear succ | heavy succ | heavy coll | speed |
+|---|---|---|---|---|
+| heuristic | 100% | 33% | 33% | 0.88 |
+| cautious_ppo | 67% | 67% | 0% | 0.50 / 0.31 |
+| random | 0% | 0% | 0% | 0.57 |
+
+Cautious agent sacrifices some clear-condition performance for robustness:
+- 0% collision even under heavy degradation
+- Action magnitude reduces automatically as visibility degrades
+- Higher timeout rate (accepts slower approach)

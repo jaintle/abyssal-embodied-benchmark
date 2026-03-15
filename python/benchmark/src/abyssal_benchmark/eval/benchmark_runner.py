@@ -18,6 +18,12 @@ Phase 7 additions
 - preset is recorded in BenchmarkConfig, AgentBenchmarkSummary, BenchmarkEpisodeResult
 - replay export passes degradation_preset to record_episode
 
+Phase 8 additions
+─────────────────
+- mean_action_magnitude field on BenchmarkEpisodeResult and AgentBenchmarkSummary
+- BenchmarkRunner._run_episode tracks action magnitudes per step
+- Env created with uncertainty_obs=True when agent.requires_uncertainty_obs is True
+
 Design
 ──────
 - All agents run on the *identical* seed list.  Comparisons are only valid
@@ -73,6 +79,8 @@ class BenchmarkEpisodeResult:
     timed_out: bool
     out_of_bounds: bool
     elapsed_seconds: float
+    mean_action_magnitude: float = 0.0
+    
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -100,6 +108,7 @@ class AgentBenchmarkSummary:
     std_steps: float
     mean_final_dist: float
     std_final_dist: float
+    mean_action_magnitude: float = 0.0
 
     episodes: List[BenchmarkEpisodeResult] = field(default_factory=list)
 
@@ -288,6 +297,7 @@ class BenchmarkRunner:
                         policy_id=policy_id,
                         env_version=ENV_VERSION,
                         degradation_preset=self.degradation_preset,
+                        uncertainty_obs=bool(getattr(agent, "requires_uncertainty_obs", False)),
                     )
                 except Exception as exc:  # noqa: BLE001
                     print(f"  [WARN] replay export failed: {exc}")
@@ -304,11 +314,15 @@ class BenchmarkRunner:
         episode_index: int,
         episode_seed: int,
     ) -> BenchmarkEpisodeResult:
+        # Determine whether this agent needs the extended (41-dim) obs
+        uncertainty_obs = bool(getattr(agent, "requires_uncertainty_obs", False))
+
         env = make_env(
             world_seed=self.world_seed,
             episode_seed=episode_seed,
             max_steps=self.max_steps,
             degradation_preset=self.degradation_preset,
+            uncertainty_obs=uncertainty_obs,
         )
 
         t0 = time.monotonic()
@@ -317,9 +331,12 @@ class BenchmarkRunner:
         steps = 0
         final_info = info
         terminated = truncated = False
+        action_magnitudes: List[float] = []
 
         while True:
             action = agent.predict(obs, deterministic=True)
+            # Track action magnitude for safety-performance analysis
+            action_magnitudes.append(float(np.linalg.norm(np.asarray(action))))
             obs, reward, terminated, truncated, info = env.step(action)
             total_reward += float(reward)
             steps += 1
@@ -329,6 +346,11 @@ class BenchmarkRunner:
 
         env.close()
         elapsed = time.monotonic() - t0
+
+        mean_act_mag = (
+            sum(action_magnitudes) / len(action_magnitudes)
+            if action_magnitudes else 0.0
+        )
 
         return BenchmarkEpisodeResult(
             agent_id=policy_id,
@@ -344,6 +366,7 @@ class BenchmarkRunner:
             timed_out=bool(final_info["timed_out"]),
             out_of_bounds=bool(final_info["out_of_bounds"]),
             elapsed_seconds=round(elapsed, 3),
+            mean_action_magnitude=round(mean_act_mag, 4),
         )
 
     # ── Private: aggregation ──────────────────────────────────────────────────
@@ -368,6 +391,8 @@ class BenchmarkRunner:
             m = _mean(xs)
             return math.sqrt(sum((x - m) ** 2 for x in xs) / (len(xs) - 1))
 
+        act_mags = [e.mean_action_magnitude for e in episodes]
+
         return AgentBenchmarkSummary(
             agent_id=policy_id,
             world_seed=episodes[0].world_seed if episodes else 0,
@@ -385,6 +410,7 @@ class BenchmarkRunner:
             std_steps=round(_std(steps_list), 2),
             mean_final_dist=round(_mean(dists), 4),
             std_final_dist=round(_std(dists), 4),
+            mean_action_magnitude=round(_mean(act_mags), 4),
             episodes=episodes,
         )
 

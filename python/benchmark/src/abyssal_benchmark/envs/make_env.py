@@ -70,6 +70,7 @@ def make_env(
     max_steps: int = 500,
     env_version: str = "0.1.0",
     degradation_preset: str = "clear",
+    uncertainty_obs: bool = False,
     config_overrides: Optional[Dict[str, Any]] = None,
 ) -> AbyssalNavigationEnv:
     """
@@ -85,6 +86,9 @@ def make_env(
         env_version:         Env contract version string for replay headers.
         degradation_preset:  Named degradation preset applied to observations.
                              One of "clear" (default), "mild", or "heavy".
+        uncertainty_obs:     When True, append a visibility quality scalar
+                             (obs[40]) to extend the obs from 40 → 41 dims.
+                             Required for cautious_ppo agents. Default False.
         config_overrides:    Optional dict of additional kwargs forwarded to
                              AbyssalNavigationEnv.__init__.
 
@@ -97,6 +101,7 @@ def make_env(
         "max_steps": max_steps,
         "env_version": env_version,
         "degradation_preset": degradation_preset,
+        "uncertainty_obs": uncertainty_obs,
     }
     if config_overrides:
         kwargs.update(config_overrides)
