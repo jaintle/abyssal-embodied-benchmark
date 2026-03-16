@@ -1,4 +1,4 @@
-{"benchmarkVersion":"0.1.0","worldSeed":42,"episodeSeed":1338301409,"policyId":"cautious_ppo","envVersion":"0.1.0","recordedAt":"2026-03-16T15:08:47Z","gitCommit":"e84a9921a744"}
+{"benchmarkVersion":"1.0.0","worldSeed":42,"episodeSeed":1338301409,"policyId":"cautious_ppo","envVersion":"1.0.0","recordedAt":"2026-03-16T15:35:46Z","gitCommit":"bd12d59a3b58"}
 {"timestep":0,"position":[-0.1,0.0,0.1],"velocity":[-1.0,0.0,1.0],"reward":0.1355045777203142,"collisionFlag":false,"doneFlag":false,"action":[-1.0,0.0,1.0]}
 {"timestep":1,"position":[-0.30000000000000004,0.0,0.30000000000000004],"velocity":[-2.0,0.0,2.0],"reward":0.27598638077594984,"collisionFlag":false,"doneFlag":false,"action":[-1.0,0.0,1.0]}
 {"timestep":2,"position":[-0.6000000000000001,0.0,0.6000000000000001],"velocity":[-3.0,0.0,3.0],"reward":0.4164212071632062,"collisionFlag":false,"doneFlag":false,"action":[-1.0,0.0,1.0]}

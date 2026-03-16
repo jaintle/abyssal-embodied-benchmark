@@ -40,7 +40,7 @@ from abyssal_benchmark.schemas.replay_schema import (
 from abyssal_benchmark.utils.io import get_git_commit
 
 # Benchmark version embedded in every replay header
-BENCHMARK_VERSION = "0.1.0"
+BENCHMARK_VERSION = "1.0.0"
 
 
 # ─── Single episode recorder ──────────────────────────────────────────────────
@@ -51,7 +51,7 @@ def record_episode(
     episode_seed: int = 0,
     max_steps: int = 500,
     policy_id: str = "unknown",
-    env_version: str = "0.1.0",
+    env_version: str = "1.0.0",
     degradation_preset: str = "clear",
     uncertainty_obs: bool = False,
     deterministic: bool = True,
@@ -144,7 +144,7 @@ def export_episode(
     episode_seed: int = 0,
     max_steps: int = 500,
     policy_id: str = "unknown",
-    env_version: str = "0.1.0",
+    env_version: str = "1.0.0",
     degradation_preset: str = "clear",
     uncertainty_obs: bool = False,
     deterministic: bool = True,

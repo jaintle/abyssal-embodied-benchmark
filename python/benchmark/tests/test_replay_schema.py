@@ -39,11 +39,11 @@ from abyssal_benchmark.schemas.replay_schema import (
 
 def _minimal_header() -> dict:
     return {
-        "benchmarkVersion": "0.1.0",
+        "benchmarkVersion": "1.0.0",
         "worldSeed": 42,
         "episodeSeed": 7,
         "policyId": "ppo-v0",
-        "envVersion": "0.1.0",
+        "envVersion": "1.0.0",
         "recordedAt": "2026-03-14T00:00:00Z",
     }
 
@@ -71,7 +71,7 @@ def _minimal_valid_replay_dict(num_steps: int = 2) -> dict:
 class TestReplayHeaderMinimalValid:
     def test_validates_minimal_header(self):
         hdr = ReplayHeader.model_validate(_minimal_header())
-        assert hdr.benchmarkVersion == "0.1.0"
+        assert hdr.benchmarkVersion == "1.0.0"
         assert hdr.worldSeed == 42
         assert hdr.policyId == "ppo-v0"
 

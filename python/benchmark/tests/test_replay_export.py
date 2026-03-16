@@ -86,7 +86,7 @@ class TestReplayHeader:
 
     def test_header_benchmark_version(self):
         replay = _record()
-        assert replay.header.benchmarkVersion == "0.1.0"
+        assert replay.header.benchmarkVersion == "1.0.0"
 
     def test_header_recorded_at_is_string(self):
         replay = _record()

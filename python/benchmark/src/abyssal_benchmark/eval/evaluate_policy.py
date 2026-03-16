@@ -120,7 +120,7 @@ class EvaluationHarness:
         max_steps: int = 500,
         base_episode_seed: int = 1000,
         policy_id: str = "unknown",
-        env_version: str = "0.1.0",
+        env_version: str = "1.0.0",
         verbose: bool = True,
     ) -> None:
         self.world_seed = world_seed

@@ -1,4 +1,4 @@
-{"benchmarkVersion":"0.1.0","worldSeed":42,"episodeSeed":1338301409,"policyId":"ppo","envVersion":"0.1.0","recordedAt":"2026-03-16T15:08:46Z","gitCommit":"e84a9921a744"}
+{"benchmarkVersion":"1.0.0","worldSeed":42,"episodeSeed":1338301409,"policyId":"ppo","envVersion":"1.0.0","recordedAt":"2026-03-16T15:35:46Z","gitCommit":"bd12d59a3b58"}
 {"timestep":0,"position":[-0.06604307889938354,0.0,0.1],"velocity":[-0.6604307889938354,0.0,1.0],"reward":0.11437458490032781,"collisionFlag":false,"doneFlag":false,"action":[-0.6604307889938354,0.0,1.0]}
 {"timestep":1,"position":[-0.19533159732818603,0.0,0.30000000000000004],"velocity":[-1.292885184288025,0.0,2.0],"reward":0.23199624203006664,"collisionFlag":false,"doneFlag":false,"action":[-0.6324543952941895,0.0,1.0]}
 {"timestep":2,"position":[-0.38771210908889775,0.0,0.6000000000000001],"velocity":[-1.9238051176071167,0.0,3.0],"reward":0.3494954060932213,"collisionFlag":false,"doneFlag":false,"action":[-0.6309199333190918,0.0,1.0]}

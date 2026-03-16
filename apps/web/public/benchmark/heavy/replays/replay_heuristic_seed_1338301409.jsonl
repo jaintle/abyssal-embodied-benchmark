@@ -1,4 +1,4 @@
-{"benchmarkVersion":"0.1.0","worldSeed":42,"episodeSeed":1338301409,"policyId":"heuristic","envVersion":"0.1.0","recordedAt":"2026-03-16T15:08:46Z","gitCommit":"e84a9921a744"}
+{"benchmarkVersion":"1.0.0","worldSeed":42,"episodeSeed":1338301409,"policyId":"heuristic","envVersion":"1.0.0","recordedAt":"2026-03-16T15:35:46Z","gitCommit":"bd12d59a3b58"}
 {"timestep":0,"position":[-0.062451100349426275,0.0,0.07810159921646119],"velocity":[-0.6245110034942627,0.0,0.7810159921646118],"reward":0.09499960549902908,"collisionFlag":false,"doneFlag":false,"action":[-0.6245110034942627,0.0,0.7810159921646118]}
 {"timestep":1,"position":[-0.1862240195274353,0.0,0.2351945519447327],"velocity":[-1.2377291917800903,0.0,1.5709295272827148],"reward":0.19499289842479584,"collisionFlag":false,"doneFlag":false,"action":[-0.6132181882858276,0.0,0.789913535118103]}
 {"timestep":2,"position":[-0.37081327438354494,0.0,0.4716686964035035],"velocity":[-1.8458925485610962,0.0,2.3647414445877075],"reward":0.29497662294082516,"collisionFlag":false,"doneFlag":false,"action":[-0.6081633567810059,0.0,0.7938119173049927]}

@@ -143,7 +143,7 @@ class AbyssalNavigationEnv(gym.Env):
         world_seed: int = 42,
         episode_seed: int = 0,
         max_steps: int = 500,
-        env_version: str = "0.1.0",
+        env_version: str = "1.0.0",
         degradation_preset: str = "clear",
         uncertainty_obs: bool = False,
     ) -> None:

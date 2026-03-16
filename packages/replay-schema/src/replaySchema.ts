@@ -12,6 +12,36 @@
 
 import { z } from "zod";
 
+// ─── Benchmark Protocol Version ───────────────────────────────────────────────
+
+/**
+ * Current benchmark contract version.
+ * Must stay in sync with:
+ *   - packages/worldgen/src/worldSpec.ts :: BENCHMARK_VERSION
+ *   - python/benchmark/src/abyssal_benchmark/schemas/world_spec.py :: BENCHMARK_VERSION
+ *   - python/benchmark/src/abyssal_benchmark/eval/replay_export.py :: BENCHMARK_VERSION
+ */
+export const BENCHMARK_VERSION = "1.0.0" as const;
+
+/**
+ * Soft version check: returns a human-readable warning if the replay header
+ * declares a different benchmarkVersion than the current BENCHMARK_VERSION,
+ * or null if the versions match.
+ *
+ * This does NOT throw — older artifacts remain loadable.
+ * See docs/protocol/schema_migration.md for guidance.
+ */
+export function checkReplayVersion(header: ReplayHeader): string | null {
+  if (header.benchmarkVersion !== BENCHMARK_VERSION) {
+    return (
+      `Replay benchmarkVersion "${header.benchmarkVersion}" ` +
+      `does not match current "${BENCHMARK_VERSION}". ` +
+      `Artifact may need regeneration — see docs/protocol/schema_migration.md.`
+    );
+  }
+  return null;
+}
+
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 /**

@@ -9,7 +9,7 @@
 
 // ─── Benchmark Protocol Version ──────────────────────────────────────────────
 
-export const BENCHMARK_VERSION = "0.1.0" as const;
+export const BENCHMARK_VERSION = "1.0.0" as const;
 
 // ─── Sub-specs ────────────────────────────────────────────────────────────────
 

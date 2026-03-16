@@ -9,8 +9,15 @@
  * Hardware antialias:true (postprocessing removed; R3F v9 incompatible).
  */
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
+import type { CSSProperties } from "react";
 import { Canvas } from "@react-three/fiber";
+import {
+  PerfCollector,
+  PerformanceHUD,
+  PerfToggle,
+  type RenderStats,
+} from "./PerformanceOverlay";
 import { OrbitControls } from "@react-three/drei";
 import {
   generateWorldSpec,
@@ -143,24 +150,44 @@ function ComparisonWorldScene({
 // ─── Public component ─────────────────────────────────────────────────────────
 
 export default function ComparisonScene(props: ComparisonSceneProps) {
+  const [perfStats, setPerfStats] = useState<RenderStats | null>(null);
+  const [showPerf, setShowPerf] = useState(false);
+  const togglePerf = useCallback(() => setShowPerf((v) => !v), []);
+
   return (
-    <Canvas
-      style={{ width: "100%", height: "100%" }}
-      camera={{
-        fov: 55,
-        near: 0.5,
-        far: 200,
-        position: [30, 22, 42],
-      }}
-      shadows={false}
-      gl={{
-        antialias: true,
-        alpha: false,
-        powerPreference: "high-performance",
-        stencil: false,
-      }}
-    >
-      <ComparisonWorldScene {...props} />
-    </Canvas>
+    <div style={SCENE_ROOT}>
+      {/* P key toggles performance HUD */}
+      <PerfToggle onToggle={togglePerf} />
+
+      <Canvas
+        style={{ width: "100%", height: "100%" }}
+        camera={{
+          fov: 55,
+          near: 0.5,
+          far: 200,
+          position: [30, 22, 42],
+        }}
+        shadows={false}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance",
+          stencil: false,
+        }}
+      >
+        <ComparisonWorldScene {...props} />
+        {/* PerfCollector runs inside Canvas so it can access the renderer */}
+        <PerfCollector onStats={setPerfStats} />
+      </Canvas>
+
+      {/* HUD is HTML rendered over the canvas */}
+      <PerformanceHUD stats={perfStats} visible={showPerf} />
+    </div>
   );
 }
+
+const SCENE_ROOT: CSSProperties = {
+  position: "relative",
+  width: "100%",
+  height: "100%",
+};

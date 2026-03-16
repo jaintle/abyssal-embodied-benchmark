@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field, model_validator
 
 # ─── Benchmark Protocol Version ──────────────────────────────────────────────
 
-BENCHMARK_VERSION: str = "0.1.0"
+BENCHMARK_VERSION: str = "1.0.0"
 
 # ─── Sub-models ───────────────────────────────────────────────────────────────
 
@@ -100,13 +100,26 @@ DEGRADATION_PRESETS: dict = {
         noiseScale=1.50,
         dropoutProb=0.00,
     ),
+    # Phase 9 calibration (2026-03-16): empirically validated via tune_degradation.py
+    # against the demo-20260315-182713 PPO model, 25 episodes, world_seed=42.
+    #
+    # Chosen candidate: vis=12.5 / noise=2.3 / drop=0.10 → PPO 44% success.
+    # This lands in the 30–50% target band, giving meaningful differentiation
+    # between agents:
+    #   heuristic ~100%  (goal-direction only, immune to obs noise)
+    #   ppo       ~44%
+    #   cautious_ppo  ~TBD (expects ~30-40%)
+    #   random      0%
+    #
+    # Original Phase 7 values (vis=8, noise=5, drop=0.20) produced PPO=10% —
+    # too harsh for meaningful comparison.
     "heavy": DegradationSpec(
         preset="heavy",
-        turbidity=0.70,
-        visibilityRange=8.0,
-        causticIntensity=0.30,
-        noiseScale=5.00,
-        dropoutProb=0.20,
+        turbidity=0.65,
+        visibilityRange=12.5,
+        causticIntensity=0.25,
+        noiseScale=2.30,
+        dropoutProb=0.10,
     ),
 }
 

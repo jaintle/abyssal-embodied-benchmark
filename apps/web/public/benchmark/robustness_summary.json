@@ -15,8 +15,8 @@
     "mean_final_dist": 1.4677,
     "std_final_dist": 0.0,
     "mean_action_magnitude": 1.0,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "clear",
@@ -34,8 +34,8 @@
     "mean_final_dist": 1.2284,
     "std_final_dist": 0.0,
     "mean_action_magnitude": 1.0977,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "clear",
@@ -53,8 +53,8 @@
     "mean_final_dist": 1.2465,
     "std_final_dist": 0.0,
     "mean_action_magnitude": 1.2975,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "clear",
@@ -72,8 +72,8 @@
     "mean_final_dist": 70.2171,
     "std_final_dist": 0.0,
     "mean_action_magnitude": 0.8001,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "heavy",
@@ -91,8 +91,8 @@
     "mean_final_dist": 1.2025,
     "std_final_dist": 0.0742,
     "mean_action_magnitude": 1.0,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "heavy",
@@ -110,8 +110,8 @@
     "mean_final_dist": 2.9798,
     "std_final_dist": 1.3846,
     "mean_action_magnitude": 0.453,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "heavy",
@@ -129,8 +129,8 @@
     "mean_final_dist": 1.3146,
     "std_final_dist": 0.0874,
     "mean_action_magnitude": 1.1848,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   },
   {
     "degradation_preset": "heavy",
@@ -148,7 +148,7 @@
     "mean_final_dist": 70.2171,
     "std_final_dist": 0.0,
     "mean_action_magnitude": 0.8001,
-    "benchmark_version": "0.1.0",
-    "env_version": "0.1.0"
+    "benchmark_version": "1.0.0",
+    "env_version": "1.0.0"
   }
 ]

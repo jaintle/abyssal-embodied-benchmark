@@ -12,6 +12,7 @@
 
 import {
   safeValidateReplayFile,
+  checkReplayVersion,
   type ReplayFile,
   type SafeValidateResult,
 } from "@abyssal/replay-schema";
@@ -79,8 +80,14 @@ export async function loadReplayFromPath(
           .slice(0, 3)
           .map((i) => `${i.path.join(".")}: ${i.message}`)
           .join(" | ")
-      : "Schema mismatch — check replay format matches benchmark version 0.1.0";
+      : "Schema mismatch — check replay format matches benchmark version 1.0.0";
     return { success: false, error: makeZodLikeError(summary) };
+  }
+
+  // ── Soft version check — log warning, never hard-fail ────────────────────
+  const versionWarning = checkReplayVersion(result.data.header);
+  if (versionWarning) {
+    console.warn(`[replayLoader] ${versionWarning}`);
   }
 
   return result;

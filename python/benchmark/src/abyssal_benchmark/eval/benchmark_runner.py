@@ -58,8 +58,8 @@ from abyssal_benchmark.utils.seeding import derive_seed
 
 # ─── Version ──────────────────────────────────────────────────────────────────
 
-BENCHMARK_VERSION = "0.1.0"
-ENV_VERSION = "0.1.0"
+BENCHMARK_VERSION = "1.0.0"
+ENV_VERSION = "1.0.0"
 
 # ─── Per-episode result ───────────────────────────────────────────────────────
 

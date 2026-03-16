@@ -1,6 +1,6 @@
 {
-  "benchmark_version": "0.1.0",
-  "env_version": "0.1.0",
+  "benchmark_version": "1.0.0",
+  "env_version": "1.0.0",
   "world_seed": 42,
   "degradation_preset": "heavy",
   "episode_seeds": [
@@ -18,6 +18,6 @@
     "cautious_ppo",
     "random"
   ],
-  "recorded_at": "2026-03-16T15:08:46Z",
-  "git_commit": "e84a9921a744"
+  "recorded_at": "2026-03-16T15:35:46Z",
+  "git_commit": "bd12d59a3b58"
 }
