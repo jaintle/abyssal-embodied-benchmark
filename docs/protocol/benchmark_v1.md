@@ -1,6 +1,6 @@
 # Benchmark Protocol v1
 
-Version: 0.1.0
+Version: 1.0.0
 
 ## Overview
 
@@ -42,8 +42,8 @@ A benchmark run produces a directory with the following artifacts:
 
 ```json
 {
-  "benchmark_version": "0.1.0",
-  "env_version": "0.1.0",
+  "benchmark_version": "1.0.0",
+  "env_version": "1.0.0",
   "world_seed": 42,
   "episode_seeds": [1028, 2049, ...],
   "n_episodes": 20,
@@ -140,16 +140,21 @@ Note: `success_rate + collision_rate + timeout_rate + oob_rate = 1.0` for any ag
 
 ---
 
-## Degradation Presets (Phase 7)
+## Degradation Presets
 
 All benchmark runs include a `degradation_preset` field in the config.  Three
 named presets are supported:
 
 | Preset | Turbidity | Visibility | Noise σ | Dropout |
 |---|---|---|---|---|
-| `clear` | 0.00 | 30 m | 0.0 m | 0.00 |
-| `mild`  | 0.30 | 18 m | 1.5 m | 0.00 |
-| `heavy` | 0.70 |  8 m | 5.0 m | 0.20 |
+| `clear` | 0.00 | 30.0 m | 0.0 m | 0.00 |
+| `mild`  | 0.30 | 18.0 m | 1.5 m | 0.00 |
+| `heavy` | 0.65 | 12.5 m | 2.3 m | 0.10 |
+
+The `heavy` preset values are empirically calibrated (see
+`results/demo/calibration_note.json`): a standard PPO policy achieves ~44%
+success rate under this preset, placing it in the 30–50% target band where
+agent-to-agent differences are clearly distinguishable.
 
 **Observation degradation** is applied to the structured feature vector after
 environment stepping.  The corruption is deterministic per `(episode_seed, step)`
@@ -284,11 +289,36 @@ Items 5–7 require researcher discipline; use `docs/experiment_log.md` as the r
 
 ---
 
+## Episode definition
+
+An episode begins with `env.reset(seed=episode_seed)` and ends when one of the
+following termination conditions is met:
+
+| Condition | Outcome | `goal_reached` | `collision` |
+|-----------|---------|---------------|-------------|
+| Agent centre within `goal_radius` of goal position | Success | `true` | `false` |
+| Agent centre intersects obstacle sphere | Failure | `false` | `true` |
+| `step_count >= max_steps` | Timeout | `false` | `false` |
+| Agent position outside world boundary | Out-of-bounds | `false` | `false` |
+
+The default `max_steps` is 500. The world boundary is a square centred at the
+origin with half-side equal to `world_size / 2`.
+
+### Success condition
+
+`goal_reached = True` iff the agent's 2-D position is within `goal_radius`
+(default 2.0 m) of the goal centre at any step during the episode.
+
+---
+
 ## Versioning
 
-`benchmark_version` and `env_version` are both `"0.1.0"` for all Phase 5–9 runs.
+`benchmark_version` and `env_version` are both `"1.0.0"` for all v1 runs.
 The shared replay schema version is also tracked in
 `packages/replay-schema/package.json`.
+
+See [`docs/protocol/schema_migration.md`](schema_migration.md) for the full
+version history and upgrade procedure.
 
 A version bump is required if any of the following change:
 

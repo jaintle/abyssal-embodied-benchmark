@@ -165,7 +165,9 @@ export default function ComparisonScene(props: ComparisonSceneProps) {
           fov: 55,
           near: 0.5,
           far: 200,
-          position: [30, 22, 42],
+          // Slightly elevated angled view: shows terrain, agents, and goal
+          // simultaneously from the opening frame.
+          position: [22, 18, 38],
         }}
         shadows={false}
         gl={{

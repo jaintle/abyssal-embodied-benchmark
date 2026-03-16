@@ -1,165 +1,122 @@
 # Abyssal Embodied Benchmark
 
-A deterministic embodied navigation benchmark with controlled visual degradation,
-multi-agent comparison, and a browser-based replay viewer.
+**Procedural underwater world + reproducible embodied navigation benchmark**
+
+A lightweight embodied RL benchmark combining procedural 3-D world rendering
+with reproducible agent evaluation. Agents are trained offline and visualised
+interactively in the browser through replayable trajectories under controlled
+perception degradation.
+
+Live demo: [abyssal-embodied-benchmark on GitHub Pages](https://janintle.github.io/abyssal-embodied-benchmark)
+*(replace `your-username` after forking)*
 
 ---
 
-## What This Is
+## What this benchmark measures
 
-Abyssal is a **research benchmark** for evaluating learned navigation policies
-under controlled perception degradation.  The benchmark tests a core question in
-robot learning:
-
-> *How does visual noise and dropout degrade a navigation policy's
-> safety and performance — and can an uncertainty-aware training objective
-> recover that robustness?*
-
-The system consists of:
-
-- A **Python Gymnasium environment** with a deterministic procedural underwater world
-- A **benchmark harness** for reproducible multi-agent, multi-condition evaluation
-- A **replay-driven web viewer** that renders evaluation results in the browser
-  with no backend required
-
-This is **not** a game engine, a physics simulator, or a training platform.
-It is a focused benchmark artifact: deterministic, reproducible, and demo-ready.
+- **Goal-reaching success rate** — fraction of episodes where the agent reaches the target zone
+- **Collision avoidance** — fraction of episodes terminated by obstacle contact
+- **Robustness under visual degradation** — Δ success rate from `clear` → `heavy` preset
+- **Speed-safety tradeoff** — mean action magnitude vs. collision rate per preset
+- **Path efficiency** — mean steps and final distance to goal at episode end
 
 ---
 
-## Research Context
+## Quickstart
 
-### Problem
+Prerequisites: **Node 18+**, **Python 3.10+**, **pip**
 
-Embodied navigation policies trained in clean simulation often fail silently
-when deployed in degraded perceptual conditions (fog, sensor noise, partial
-occlusion).  Standard benchmarks evaluate agents in a single fixed condition and
-report only terminal success/failure.  This hides the degradation curve.
+```bash
+# 1. Clone and install web dependencies
+git clone https://github.com/your-username/abyssal-embodied-benchmark.git
+cd abyssal-embodied-benchmark && npm install
 
-### What Abyssal Measures
+# 2. Install Python dependencies
+cd python/benchmark && pip install -e .
 
-Abyssal provides **named degradation presets** that apply controlled corruption
-to the structured observation vector:
+# 3. Train the PPO baseline, run benchmark, export artifacts (~15 min)
+bash scripts/smoke_end_to_end.sh
 
-| Preset  | Turbidity | Visibility | Noise σ | Dropout |
-|---------|-----------|------------|---------|---------|
-| `clear` | 0.00      | 30 m       | 0.0     | 0.00    |
-| `mild`  | 0.30      | 18 m       | 1.5 m   | 0.00    |
-| `heavy` | 0.70      |  8 m       | 5.0 m   | 0.20    |
+# 4. Launch the web demo
+cd ../.. && npm run dev:web
+# → open http://localhost:3000
+```
 
-Every agent is evaluated under **identical seeds across all presets**, making
-cross-condition comparisons statistically valid.
+Step 3 trains a PPO policy (~50 k steps for a quick run, 200 k for the full
+baseline), evaluates all available agents across `clear` and `heavy` presets,
+and copies the replay artifacts into `apps/web/public/benchmark/`.
 
-### Uncertainty-Aware Baseline
+**Skip training** if you already have a checkpoint:
 
-The benchmark includes a **cautious PPO baseline** trained with:
+```bash
+cd python/benchmark
+SKIP_TRAIN=1 PPO_MODEL=../../results/runs/my-run/model.zip \
+    bash scripts/smoke_end_to_end.sh
+```
 
-1. A `visibility_quality` scalar appended to the observation (`obs[40]`)
-2. A reward penalty during training: `−α × (1 − visibility) × ‖action‖²`
-
-This teaches the policy to reduce its action magnitude when perception is poor —
-encoding conservative behavior in the weights with no inference-time modification.
-
-### Observed Safety-Performance Tradeoff
-
-The bundled sample results (world seed 42, 20 episodes) show the core tradeoff:
-
-| Agent         | clear succ | heavy succ | heavy coll | speed (clear→heavy) |
-|---------------|-----------|-----------|-----------|----------------------|
-| `heuristic`   |     100%  |      33%  |      33%  |  0.88 → 0.88         |
-| `cautious_ppo`|      67%  |      67%  |       0%  |  0.50 → 0.31         |
-| `random`      |       0%  |       0%  |       0%  |  0.57 → 0.57         |
-
-The cautious agent absorbs degradation without colliding by automatically
-reducing its action magnitude.  It trades clear-condition success rate for
-zero-collision robustness under heavy noise.
+The viewer opens with pre-bundled sample artifacts so step 3 is optional for
+a quick look at the UI.
 
 ---
 
 ## Architecture
 
 ```
-abyssal-embodied-benchmark/
-├── python/benchmark/          # Gymnasium env + training + evaluation
-│   ├── src/abyssal_benchmark/
-│   │   ├── envs/              # AbyssalNavigationEnv, degradation, make_env
-│   │   ├── agents/            # HeuristicAgent, RandomAgent, PPOAgent, CautiousAgent
-│   │   └── eval/              # BenchmarkRunner, ReplayExporter
-│   └── scripts/               # CLI entry points
-├── apps/web/                  # Next.js replay viewer (static export)
-│   ├── src/components/        # React Three Fiber scene + panels
-│   └── public/benchmark/      # Bundled sample artifacts
-└── packages/
-    ├── worldgen/              # Shared procedural world spec (TypeScript)
-    └── replay-schema/         # Shared replay JSONL schema (TypeScript + Zod)
+Python RL training
+└── scripts/train_ppo.py  →  results/runs/<name>/model.zip
+
+Python benchmark harness
+└── scripts/run_benchmark.py  →  results/leaderboard/<name>/
+        robustness_summary.json
+        clear/  { benchmark_config.json, replays/*.jsonl }
+        heavy/  { benchmark_config.json, replays/*.jsonl }
+
+Web artifact copy
+└── scripts/demo_web_artifacts.sh  →  apps/web/public/benchmark/
+
+Browser replay viewer  (Next.js + React Three Fiber, fully static)
+└── npm run dev:web  →  http://localhost:3000
+        sidebar : leaderboard + robustness table + safety tradeoff
+        canvas  : 3-D comparison view, all agents in one scene
+        controls: play/pause/seek + degradation toggle (CLEAR / HEAVY)
 ```
 
-The Python layer and the web viewer share contracts via:
-
-- `world_spec.json` — seed, obstacle layout, goal position
-- `replay.jsonl` — step-by-step trajectory with observations and actions
-- `aggregate_summary.json` — per-agent benchmark statistics
-- `robustness_summary.json` — statistics across all presets (flat array)
-
-The web viewer is a **static app**.  It reads pre-computed JSON/JSONL artifacts
-from `/public/benchmark/` and requires no live Python process.
+The web viewer is **fully static** — no live Python process required. It reads
+pre-computed JSON/JSONL artifacts from `/public/benchmark/` at build time.
 
 ---
 
-## Quickstart
+## Benchmark agents
 
-### Python benchmark
+| Specifier | Description |
+|-----------|-------------|
+| `heuristic` | Full thrust toward goal; no obstacle avoidance — pure upper-bound on speed |
+| `ppo:<path>` | SB3 PPO trained on `clear` world; obs dim = 40 |
+| `cautious_ppo:<path>` | PPO trained with uncertainty observation + caution penalty; obs dim = 41 |
+| `random` | Uniform random actions — lower-bound baseline |
 
-Install dependencies (from `python/benchmark/`):
-
-```bash
-pip install -e .
-```
-
-**Smoke test the environment:**
-
-```bash
-cd python/benchmark
-python scripts/smoke_env.py
-```
-
-**End-to-end demo (train + benchmark + export):**
-
-```bash
-cd python/benchmark
-bash scripts/demo_train_and_benchmark.sh
-```
-
-This trains both PPO baselines (~15 min), evaluates all four agents across
-`clear` and `heavy` presets, and writes a complete leaderboard bundle to
-`results/leaderboard/demo-<timestamp>/`.
-
-**Update the web viewer with fresh artifacts:**
-
-```bash
-cd python/benchmark
-bash scripts/demo_web_artifacts.sh demo-<timestamp>
-```
-
-### Web viewer
-
-```bash
-npm install
-cd apps/web && npm run dev
-```
-
-Open `http://localhost:3000`.  The viewer loads the bundled sample artifacts
-from `apps/web/public/benchmark/` and shows:
-
-- Leaderboard table (per-agent metrics, best/worst highlighted)
-- Degradation selector (switch between `clear` and `heavy` preset results)
-- Safety-tradeoff panel (collision rate vs action magnitude per preset)
-- Robustness comparison (Δ success rate from clear → heavy)
-- Side-by-side 3D replay of all agents in the same episode
+The cautious baseline appends a `visibility_quality` scalar to the observation
+and applies a reward penalty `−0.3 × (1 − visibility) × ‖action‖²` during
+training. This encodes conservative behaviour in the weights with no
+inference-time modification.
 
 ---
 
-## Running Specific Workflows
+## Degradation presets
+
+| Preset | Visibility | Noise σ | Dropout | PPO success (typical) |
+|--------|------------|---------|---------|----------------------|
+| `clear` | 30 m | 0.0 | 0.00 | ~75–90% |
+| `mild`  | 18 m | 1.5 | 0.00 | ~55–70% |
+| `heavy` | 12.5 m | 2.3 | 0.10 | ~40–50% |
+
+Heavy-preset values are empirically calibrated so a standard PPO baseline
+scores in the 30–50% success band — wide enough to show a meaningful
+robustness gap between agents.
+
+---
+
+## Running specific workflows
 
 ### Train standard PPO baseline
 
@@ -167,11 +124,10 @@ from `apps/web/public/benchmark/` and shows:
 cd python/benchmark
 python scripts/train_ppo.py \
     --world-seed 42 \
-    --total-steps 50000 \
+    --total-steps 200000 \
     --run-name ppo-baseline
+# → results/runs/ppo-baseline/model.zip
 ```
-
-Output: `results/runs/ppo-baseline/model.zip`
 
 ### Train cautious PPO baseline
 
@@ -181,65 +137,33 @@ python scripts/train_cautious_ppo.py \
     --world-seed 42 \
     --total-steps 200000 \
     --caution-coeff 0.3 \
-    --run-name cautious-ppo-baseline
+    --run-name cautious-baseline
+# → results/runs/cautious-baseline/model.zip
 ```
 
-Output: `results/runs/cautious-ppo-baseline/model.zip`
-
-Key differences from standard PPO:
-
-- Observation dim = 41 (includes `visibility_quality` scalar at `obs[40]`)
-- `CautiousRewardWrapper` applies penalty `caution_coeff × (1 − vis) × ‖a‖²` during training
-- Use `cautious_ppo:<path>` specifier in the benchmark runner
-
-### Run multi-agent benchmark
-
-Evaluate heuristic and random baselines:
-
-```bash
-cd python/benchmark
-python scripts/run_benchmark.py \
-    --agents heuristic random \
-    --world-seed 42 \
-    --n-episodes 20 \
-    --run-name baseline-comparison
-```
-
-Evaluate all four agents across two degradation presets with replay export:
+### Run full robustness benchmark
 
 ```bash
 cd python/benchmark
 python scripts/run_benchmark.py \
     --agents heuristic \
-            ppo:results/runs/ppo-baseline/model.zip \
-            cautious_ppo:results/runs/cautious-ppo-baseline/model.zip \
-            random \
+             ppo:results/runs/ppo-baseline/model.zip \
+             cautious_ppo:results/runs/cautious-baseline/model.zip \
+             random \
     --world-seed 42 \
     --n-episodes 20 \
     --degradation-presets clear heavy \
     --export-replay-seed 0 \
-    --run-name safety-tradeoff-run
+    --run-name robustness-v1
+# → results/leaderboard/robustness-v1/
 ```
 
-Output bundle: `<repo-root>/results/leaderboard/<run-name>/`
+### Update the web viewer with fresh artifacts
 
+```bash
+cd python/benchmark
+bash scripts/demo_web_artifacts.sh robustness-v1
 ```
-results/leaderboard/<run-name>/
-    robustness_summary.json    # all agents × all presets
-    robustness_summary.csv
-    clear/
-        benchmark_config.json
-        aggregate_summary.json
-        aggregate_summary.csv
-        per_episode.csv
-        replays/               # if --export-replay-seed is given
-    heavy/
-        benchmark_config.json
-        aggregate_summary.json
-        ...
-```
-
-Available presets: `clear` (baseline), `mild` (moderate noise), `heavy` (severe noise + dropout).
 
 ### Run tests
 
@@ -250,30 +174,13 @@ python -m pytest tests/ -v
 
 ---
 
-## Benchmark Protocol
+## Adding your own agent
 
-All agents in a run share identical `world_seed`, `episode_seeds`, and `max_steps`.
-Comparisons are only valid when these parameters are held constant.  The
-`benchmark_config.json` artifact records the exact values used.
-
-**Determinism guarantees:**
-
-- World geometry: fixed by `world_seed` at construction
-- Episode seeds: derived via `derive_seed(base, i)` for `i in 0..n_episodes-1`
-- Observation degradation: seeded per `(episode_seed * 1_000_003 + step) & 0x7FFF_FFFF`
-- All seeds are logged in `benchmark_config.json`
-
-See [`docs/protocol/benchmark_v1.md`](docs/protocol/benchmark_v1.md) for the full protocol specification.
-
----
-
-## Extending the Benchmark
-
-### Adding a new agent
-
-Implement the `BenchmarkAgent` interface in `python/benchmark/src/abyssal_benchmark/agents/`:
+Implement the `BenchmarkAgent` interface:
 
 ```python
+# python/benchmark/src/abyssal_benchmark/agents/my_agent.py
+import numpy as np
 from abyssal_benchmark.agents.base import BenchmarkAgent
 
 class MyAgent(BenchmarkAgent):
@@ -281,32 +188,72 @@ class MyAgent(BenchmarkAgent):
         return "my_agent"
 
     def predict(self, obs: np.ndarray, deterministic: bool = True) -> np.ndarray:
-        # obs shape: (40,) standard, (41,) if requires_uncertainty_obs=True
-        return action  # shape (2,), values in [-1, 1]
+        # obs.shape: (40,) standard  |  (41,) if requires_uncertainty_obs=True
+        # return: np.ndarray shape (2,), values in [-1.0, 1.0]
+        raise NotImplementedError
 
     def reset(self) -> None:
-        pass  # called at episode start; reset any internal state here
+        pass  # called at episode start; reset internal state here
 ```
 
-Pass it to the runner via `--agents my_agent` or register a specifier in `run_benchmark.py`.
+Pass it to the runner:
 
-### Adding a new degradation preset
+```bash
+python scripts/run_benchmark.py \
+    --agents my_agent \
+    --world-seed 42 --n-episodes 20 \
+    --run-name my-agent-eval
+```
 
-Add the preset to `DEGRADATION_PRESETS` in both:
+To submit results for comparison, export a replay bundle and share the
+`results/leaderboard/<run-name>/` directory alongside your checkpoint and
+training config. All runs must record:
 
-- `python/benchmark/src/abyssal_benchmark/schemas/world_spec.py`
-- `packages/worldgen/src/worldSpec.ts`
+- `benchmark_version: "1.0.0"`
+- `world_seed`, `episode_seeds`, `n_episodes`, `max_steps`
+- `degradation_preset` (one per sub-directory for multi-preset runs)
+- `git_commit` of the code used
 
-Both must stay in sync — the shared replay schema enforces the contract.
+See [`docs/protocol/benchmark_v1.md`](docs/protocol/benchmark_v1.md) for the
+full protocol specification.
+
+---
+
+## Static demo build
+
+Build a fully static web export for hosting on GitHub Pages or any CDN:
+
+```bash
+npm run export:web
+# → apps/web/out/
+```
+
+Set the base path for your deployment:
+
+```bash
+NEXT_PUBLIC_BASE_PATH=/abyssal-embodied-benchmark npm run export:web
+```
+
+---
+
+## Performance
+
+Tested at **~58–62 FPS** on a mid-range laptop (MacBook M-series, 1440 × 900)
+with 4 agents running simultaneously in the heavy preset scene.  The renderer
+uses procedural geometry only — no large texture assets.
+
+Press **P** in the browser to toggle the live performance HUD (FPS / draw calls
+/ triangle count).
 
 ---
 
 ## Docs
 
-- [`docs/protocol/benchmark_v1.md`](docs/protocol/benchmark_v1.md) — full benchmark protocol
+- [`docs/protocol/benchmark_v1.md`](docs/protocol/benchmark_v1.md) — full benchmark protocol and metrics
+- [`docs/product/overview.md`](docs/product/overview.md) — design philosophy and research context
+- [`docs/protocol/schema_migration.md`](docs/protocol/schema_migration.md) — replay schema versioning
+- [`docs/protocol/performance_audit.md`](docs/protocol/performance_audit.md) — renderer performance audit
 - [`docs/experiment_log.md`](docs/experiment_log.md) — curated run history
-- [`docs/threat_model/visual_degradation.md`](docs/threat_model/visual_degradation.md) — degradation design rationale
-- [`docs/product/`](docs/product/) — product vision and scope
 
 ---
 

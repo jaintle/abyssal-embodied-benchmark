@@ -38,7 +38,7 @@ const PRESET_COLORS: Record<DegradationPreset, string> = {
 const PRESET_DESC: Record<DegradationPreset, string> = {
   clear: "No degradation — baseline (σ=0, vis=30m, dropout=0%)",
   mild:  "Moderate degradation (σ=1.5m, vis=18m, dropout=0%)",
-  heavy: "Severe degradation (σ=5m, vis=8m, dropout=20%)",
+  heavy: "Calibrated severe degradation (σ=2.3m, vis=12.5m, dropout=10%)",
 };
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ const TITLE: CSSProperties = {
   fontFamily: "monospace",
   fontSize: "0.65rem",
   letterSpacing: "0.1em",
-  color: "#2a6a9e",
+  color: "#4a9aba",
   marginBottom: 8,
   textTransform: "uppercase" as const,
 };

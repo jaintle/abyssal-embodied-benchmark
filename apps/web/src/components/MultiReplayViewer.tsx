@@ -123,12 +123,14 @@ export default function MultiReplayViewer() {
   const [isLoading, setIsLoading] = useState(true);
 
   // ── Degradation state (Phase 7) ────────────────────────────────────────────
+  // Default to "clear" so visitors first see best-case agent performance;
+  // they can switch to "heavy" via the degradation selector to observe robustness.
   const [activePreset, setActivePreset] = useState<SamplePreset>("clear");
   const [robustnessSummary, setRobustnessSummary] = useState<RobustnessSummaryRow[]>([]);
 
   // ── Playback state ─────────────────────────────────────────────────────────
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(1.5);
   const [currentStep, setCurrentStep] = useState(0);
   const [playbackKey, setPlaybackKey] = useState(0);
   const [seekVersion, setSeekVersion] = useState(0);
@@ -153,6 +155,8 @@ export default function MultiReplayViewer() {
       if (result.success) {
         setBundle(result.data);
         setLoadError(null);
+        // Auto-start playback so new visitors immediately see agents moving.
+        setPlaying(true);
       } else {
         setLoadError(result.error ?? "Failed to load benchmark bundle");
       }

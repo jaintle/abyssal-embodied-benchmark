@@ -21,7 +21,15 @@ import {
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
-const BASE = "/benchmark";
+// When deployed to a sub-path (e.g. GitHub Pages), NEXT_PUBLIC_BASE_PATH is set
+// at build time so that fetch() calls resolve to the correct URLs.
+// Locally (npm run dev) the env var is unset and BASE stays "/benchmark".
+const _BASE_PATH =
+  typeof process !== "undefined"
+    ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "")
+    : "";
+
+const BASE = `${_BASE_PATH}/benchmark`;
 
 export const SAMPLE_CONFIG_PATH = `${BASE}/benchmark_config.json`;
 export const SAMPLE_SUMMARY_PATH = `${BASE}/aggregate_summary.json`;
