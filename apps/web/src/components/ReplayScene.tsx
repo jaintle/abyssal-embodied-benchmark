@@ -30,6 +30,7 @@ import CameraController from "./CameraController";
 import UnderwaterAtmosphere from "./UnderwaterAtmosphere";
 import CausticsLayer from "./CausticsLayer";
 import ParticleField from "./ParticleField";
+import SeabedFloor from "./SeabedFloor";
 import WaterSurface from "./WaterSurface";
 import GodRays from "./GodRays";
 
@@ -83,6 +84,7 @@ function ReplayWorldScene({
       <UnderwaterAtmosphere />
 
       {/* ── Static world geometry ──────────────────────────────────── */}
+      <SeabedFloor />
       <TerrainMesh grid={grid} />
       <ObstacleField obstacles={obstacles} />
       <GoalMarker goal={spec.goal} />

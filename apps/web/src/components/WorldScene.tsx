@@ -31,6 +31,7 @@ import GoalMarker from "./GoalMarker";
 import UnderwaterAtmosphere from "./UnderwaterAtmosphere";
 import CausticsLayer from "./CausticsLayer";
 import ParticleField from "./ParticleField";
+import SeabedFloor from "./SeabedFloor";
 import WaterSurface from "./WaterSurface";
 import GodRays from "./GodRays";
 
@@ -53,6 +54,7 @@ function UnderwaterScene({ seed }: { seed: number }) {
       <UnderwaterAtmosphere />
 
       {/* ── Static world geometry ───────────────────────────────────── */}
+      <SeabedFloor />
       <TerrainMesh grid={grid} />
       <ObstacleField obstacles={obstacles} />
       <GoalMarker goal={spec.goal} />
