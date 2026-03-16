@@ -42,7 +42,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
 
       - name: Install Python dependencies
         # Lightweight install only — no torch/stable_baselines3 in CI
@@ -77,7 +76,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
 
       - name: Install npm dependencies
         run: npm ci
