@@ -6,7 +6,8 @@
  * Phase 6 bundle: ppo-vs-baselines, world seed 42, 20 episodes.
  *   Agents: heuristic, ppo, random
  *
- * Phase 7 robustness bundle: heuristic vs random, clear and heavy presets.
+ * Phase 7 robustness bundle: all 4 agents (heuristic, ppo, cautious_ppo, random),
+ *   clear and heavy presets.
  *   Artifacts live in /public/benchmark/clear/ and /public/benchmark/heavy/.
  */
 
@@ -54,8 +55,8 @@ export const PRESET_SUMMARY_PATHS: Record<SamplePreset, string> = {
   heavy: `${BASE}/heavy/aggregate_summary.json`,
 };
 
-/** Agents in the robustness bundle (Phase 7: heuristic+random; Phase 8: +cautious_ppo) */
-const ROBUSTNESS_AGENTS = ["heuristic", "cautious_ppo", "random"] as const;
+/** Agents in the robustness bundle (Phase 7: heuristic+random; Phase 8: +cautious_ppo; Phase 9: +ppo) */
+const ROBUSTNESS_AGENTS = ["heuristic", "ppo", "cautious_ppo", "random"] as const;
 
 export function presetReplayPaths(preset: SamplePreset): Record<string, string> {
   return Object.fromEntries(
