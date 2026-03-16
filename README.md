@@ -8,7 +8,6 @@ interactively in the browser through replayable trajectories under controlled
 perception degradation.
 
 Live demo: [abyssal-embodied-benchmark on GitHub Pages](https://janintle.github.io/abyssal-embodied-benchmark)
-*(replace `your-username` after forking)*
 
 ---
 
