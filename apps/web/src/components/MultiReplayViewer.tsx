@@ -56,8 +56,9 @@ const ROOT: CSSProperties = {
   overflow: "hidden",
 };
 
-const SIDEBAR: CSSProperties = {
-  width: 280,
+// Sidebar base style — width is wide enough to show all leaderboard columns.
+const SIDEBAR_BASE: CSSProperties = {
+  width: 380,
   flexShrink: 0,
   display: "flex",
   flexDirection: "column",
@@ -70,6 +71,7 @@ const CANVAS_WRAPPER: CSSProperties = {
   flex: 1,
   position: "relative",
   overflow: "hidden",
+  transition: "filter 0.8s ease",
 };
 
 const CANVAS_LOADING: CSSProperties = {
@@ -155,8 +157,6 @@ export default function MultiReplayViewer() {
       if (result.success) {
         setBundle(result.data);
         setLoadError(null);
-        // Auto-start playback so new visitors immediately see agents moving.
-        setPlaying(true);
       } else {
         setLoadError(result.error ?? "Failed to load benchmark bundle");
       }
@@ -231,10 +231,20 @@ export default function MultiReplayViewer() {
   }
 
   // ── Render: full viewer ────────────────────────────────────────────────────
+  // When heavy preset is active, fog the 3-D canvas to reflect the
+  // perception conditions the agents operate under. Sidebar stays crisp.
+  const canvasWrapperStyle: CSSProperties = {
+    ...CANVAS_WRAPPER,
+    filter:
+      activePreset === "heavy"
+        ? "brightness(0.78) saturate(0.60) blur(0.3px)"
+        : "none",
+  };
+
   return (
     <div style={ROOT}>
       {/* ── Left sidebar ─────────────────────────────────────────────────── */}
-      <aside style={SIDEBAR}>
+      <aside style={SIDEBAR_BASE}>
         <BenchmarkSummaryPanel
           config={bundle.config}
           episodeSeed={bundle.episodeSeed}
@@ -266,7 +276,7 @@ export default function MultiReplayViewer() {
       </aside>
 
       {/* ── Right: 3D canvas + controls overlay ─────────────────────────── */}
-      <div style={CANVAS_WRAPPER}>
+      <div style={canvasWrapperStyle}>
         {comparisonAgents.length > 0 ? (
           <>
             <ComparisonScene

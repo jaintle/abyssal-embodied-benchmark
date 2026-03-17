@@ -42,12 +42,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "python/benchmark/requirements.txt"
 
       - name: Install Python dependencies
         # Lightweight install only — no torch/stable_baselines3 in CI
         run: |
           pip install --upgrade pip
-          pip install gymnasium numpy pydantic pytest
+          pip install -r python/benchmark/requirements.txt
 
       - name: Run smoke tests
         # Exclude test_benchmark_runner (needs SB3) and test_world_gen (slow)
@@ -76,12 +78,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "python/benchmark/requirements.txt"
 
       - name: Install npm dependencies
         run: npm ci
 
       - name: Install Python dependencies
-        run: pip install --upgrade pip && pip install gymnasium numpy pydantic
+        run: |
+          pip install --upgrade pip
+          pip install -r python/benchmark/requirements.txt
 
       - name: Run cross-contract test
         run: bash tools/contract_test.sh

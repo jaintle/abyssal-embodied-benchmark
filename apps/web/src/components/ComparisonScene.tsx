@@ -9,8 +9,8 @@
  * Hardware antialias:true (postprocessing removed; R3F v9 incompatible).
  */
 
-import { useMemo, useState, useCallback } from "react";
-import type { CSSProperties } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
+import type { CSSProperties, MutableRefObject } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   PerfCollector,
@@ -76,6 +76,16 @@ function ComparisonWorldScene({
   const grid      = useMemo(() => generateTerrainGrid(spec, DEFAULT_TERRAIN_RESOLUTION), [spec]);
   const obstacles = useMemo(() => generateObstacles(spec), [spec]);
 
+  // ── Per-agent live step refs ─────────────────────────────────────────────
+  // Each ref is written every frame by its AgentPlayback (via liveStepRef)
+  // and read every frame by its TrajectoryTrail — zero React re-renders.
+  const stepRefsContainer = useRef<MutableRefObject<number>[]>([]);
+  // Grow the array when agents are added; initialise new refs to seekToStep.
+  while (stepRefsContainer.current.length < agents.length) {
+    stepRefsContainer.current.push({ current: seekToStep });
+  }
+  const stepRefs = stepRefsContainer.current;
+
   const longestAgentIndex = useMemo(
     () =>
       agents.reduce(
@@ -112,9 +122,10 @@ function ComparisonWorldScene({
       {/* ── Per-agent trail + animated sphere ─────────────────────── */}
       {agents.map((agent, i) => (
         <group key={agent.agentId}>
+          {/* stepRefs[i] is written by AgentPlayback and read by TrajectoryTrail */}
           <TrajectoryTrail
             steps={agent.replay.steps}
-            currentStep={seekToStep}
+            stepRef={stepRefs[i]}
             color={agent.color}
           />
           <AgentPlayback
@@ -128,6 +139,7 @@ function ComparisonWorldScene({
             agentColor={agent.color}
             showGlow={i === 0}
             showPointLight={false}
+            liveStepRef={stepRefs[i]}
             onStepChange={handleStepChange(i)}
           />
         </group>
@@ -165,9 +177,9 @@ export default function ComparisonScene(props: ComparisonSceneProps) {
           fov: 55,
           near: 0.5,
           far: 200,
-          // Slightly elevated angled view: shows terrain, agents, and goal
-          // simultaneously from the opening frame.
-          position: [22, 18, 38],
+          // Elevated angled overview: water surface at top, full terrain + goal
+          // visible — benchmark audit reference camera position.
+          position: [30, 22, 42],
         }}
         shadows={false}
         gl={{

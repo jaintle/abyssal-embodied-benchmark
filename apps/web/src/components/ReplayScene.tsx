@@ -10,7 +10,7 @@
  * Phase 11: WaterSurface and GodRays always on.
  */
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import {
@@ -78,6 +78,9 @@ function ReplayWorldScene({
   const grid      = useMemo(() => generateTerrainGrid(spec, DEFAULT_TERRAIN_RESOLUTION), [spec]);
   const obstacles = useMemo(() => generateObstacles(spec), [spec]);
 
+  // Live step ref shared between AgentPlayback (writer) and TrajectoryTrail (reader)
+  const liveStepRef = useRef<number>(seekToStep);
+
   return (
     <>
       {/* ── Atmosphere ─────────────────────────────────────────────── */}
@@ -98,7 +101,7 @@ function ReplayWorldScene({
       <GodRays />
 
       {/* ── Trajectory trail ──────────────────────────────────────── */}
-      <TrajectoryTrail steps={replay.steps} currentStep={currentStep} />
+      <TrajectoryTrail steps={replay.steps} stepRef={liveStepRef} />
 
       {/* ── Animated agent ─────────────────────────────────────────── */}
       <AgentPlayback
@@ -107,6 +110,7 @@ function ReplayWorldScene({
         playing={playing}
         speed={speed}
         playbackKey={playbackKey}
+        liveStepRef={liveStepRef}
         seekVersion={seekVersion}
         seekToStep={seekToStep}
         onStepChange={onStepChange}

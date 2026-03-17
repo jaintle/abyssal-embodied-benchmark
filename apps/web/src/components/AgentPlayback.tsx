@@ -16,6 +16,7 @@
  */
 
 import { useRef, useEffect } from "react";
+import type { MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { ReplayStep } from "@abyssal/replay-schema";
@@ -53,6 +54,12 @@ export interface AgentPlaybackProps {
    * Defaults to the original teal-green for backward compat.
    */
   agentColor?: string;
+  /**
+   * Optional ref that receives the current step index every frame.
+   * Allows sibling components (e.g. TrajectoryTrail) to track playback
+   * position without triggering React re-renders.
+   */
+  liveStepRef?: MutableRefObject<number>;
   /** Whether to render the pulsing glow shell. Default: true */
   showGlow?: boolean;
   /** Whether to render the agent point light. Default: true */
@@ -72,6 +79,7 @@ export default function AgentPlayback({
   agentColor = "#00ffaa",
   showGlow = true,
   showPointLight = true,
+  liveStepRef,
 }: AgentPlaybackProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
@@ -140,6 +148,13 @@ export default function AgentPlayback({
         currentStepRef.current++;
         onStepChange?.(currentStepRef.current);
       }
+    }
+
+    // Publish current step (as a float including sub-step interpolation) to
+    // sibling components (e.g. TrajectoryTrail) via a shared ref — avoids
+    // triggering React re-renders at 60 fps.
+    if (liveStepRef) {
+      liveStepRef.current = currentStepRef.current + Math.min(timeAccRef.current / STEP_DURATION, 1);
     }
 
     // Smooth sub-step interpolation

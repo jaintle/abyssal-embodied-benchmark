@@ -71,7 +71,7 @@ const TABLE: CSSProperties = {
 
 const TH: CSSProperties = {
   textAlign: "right" as const,
-  padding: "3px 6px",
+  padding: "3px 5px",
   color: "#2a6a9e",
   letterSpacing: "0.04em",
   borderBottom: "1px solid #0d3b52",
@@ -87,7 +87,7 @@ const TH_FIRST: CSSProperties = {
 
 const TD_BASE: CSSProperties = {
   textAlign: "right" as const,
-  padding: "4px 6px",
+  padding: "4px 5px",
   color: "#7ab8d0",
   borderBottom: "1px solid rgba(13,59,82,0.4)",
   whiteSpace: "nowrap" as const,

@@ -116,7 +116,7 @@ export async function loadSampleRobustnessSummary(): Promise<
 
 /** Consistent agent color map used by both the leaderboard and the 3D scene */
 export const AGENT_COLORS: Record<string, string> = {
-  heuristic:    "#00ffa0",   // teal-green
+  heuristic:    "#88ff00",   // lime-green — clearly distinct from PPO blue
   ppo:          "#4ab8ff",   // sky-blue
   cautious_ppo: "#ffcc44",   // amber — signals cautious/safe behaviour
   random:       "#ff6060",   // coral-red
