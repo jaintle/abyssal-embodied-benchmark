@@ -235,6 +235,47 @@ NEXT_PUBLIC_BASE_PATH=/abyssal-embodied-benchmark npm run export:web
 
 ---
 
+## Public Leaderboard
+
+The web demo includes a live public leaderboard at `/leaderboard`.
+
+It loads the canonical manifest from `apps/web/public/data/leaderboard/leaderboard.json`
+and displays official baselines alongside community submissions with sorting,
+filtering, and per-submission detail inspection.
+
+**Status semantics:**
+
+| Status | Meaning |
+|--------|---------|
+| `verified` | Official re-run confirmed by maintainer — metrics are authoritative |
+| `provisional` | Submitted; awaiting official re-run |
+| `rejected` | Not shown on the leaderboard |
+
+Clicking any row opens a detail panel with full metadata, training notes, and
+per-preset metrics. From there you can jump directly to the Replay Arena.
+
+---
+
+## Replay Arena
+
+The Replay Arena at `/replays` loads and compares published replay artifacts
+interactively — without running any Python.
+
+1. Select up to two agents from the submission list
+2. Choose a degradation preset and episode index
+3. Click **LOAD REPLAYS** — `.jsonl` files are fetched from `public/data/submissions/`
+4. Trajectories play back in the 3D scene with synchronized scrubber controls
+
+```bash
+# Generate demo replay files (5 episodes × 3 agents × 2 presets)
+python python/benchmark/scripts/gen_sample_data.py
+```
+
+For real agents, use `evaluate_submission.py` then `publish_submission.py`
+to populate `apps/web/public/data/submissions/<id>/replays/`.
+
+---
+
 ## Performance
 
 Tested at **~58–62 FPS** on a mid-range laptop (MacBook M-series, 1440 × 900)

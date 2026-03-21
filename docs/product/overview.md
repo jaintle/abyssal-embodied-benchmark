@@ -145,3 +145,57 @@ enter with status `provisional` until a maintainer performs an official re-run.
 See `docs/submissions/submission_spec.md` and `docs/submissions/adapter_spec.md`
 for the full submission and adapter specifications. The `submissions/TEMPLATE/`
 directory contains a ready-to-copy starter bundle.
+
+
+---
+
+## Phase C — Public benchmark UI (dynamic data layer)
+
+Phase C adds a data-driven public-facing layer to the web demo. Published
+submission bundles from Phase B (`publish_submission.py`) are now consumed
+directly by the frontend — no hardcoded agent lists anywhere in the UI.
+
+### Architecture
+
+```
+apps/web/public/data/
+  leaderboard/leaderboard.json        ← canonical manifest
+  submissions/<id>/
+    metadata.json                     ← full SubmissionMetadata
+    summary.json                      ← SubmissionSummary (per-preset metrics)
+    replays/<preset>/episode_NNNN.jsonl
+
+apps/web/src/lib/
+  leaderboardLoader.ts                ← loads + validates manifest
+  submissionLoader.ts                 ← loads per-submission artifacts
+
+apps/web/src/app/
+  /                                   ← benchmark comparison viewer (unchanged)
+  /leaderboard                        ← dynamic public leaderboard page
+  /replays                            ← replay arena (agent/preset/episode selection)
+```
+
+### Public Leaderboard (`/leaderboard`)
+
+- Loads `leaderboard.json` on mount via `leaderboardLoader.ts`
+- Splits entries into **Official Baselines** (highlighted) and Community Submissions
+- Sorting by clear/heavy success rate or date; filtering by status and algorithm family
+- `verified` entries highlighted green; `provisional` entries marked amber
+- Clicking a row opens `SubmissionDetailsPanel` with full metadata, training notes,
+  and per-preset metric cards
+- From the panel: REPLAY → `/replays?agents=<id>&preset=clear`, COMPARE → `/replays?agents=<id>`
+
+### Replay Arena (`/replays`)
+
+- Lists available submissions from leaderboard manifest (data-driven, no hardcoded list)
+- Select up to 2 agents, choose degradation preset and episode index
+- Loads `.jsonl` replay files dynamically from `public/data/submissions/<id>/replays/`
+- Plays back in `ComparisonScene` (existing 3D renderer) with full playback controls
+- Gracefully shows error states for missing replay files
+- Accepts URL params for deep-linking: `?agents=a,b&preset=heavy&episode=3`
+
+### Static-host compatibility
+
+All new data loading uses browser `fetch()` against `/public/data/`. No backend,
+no database, no server-side inference. The entire demo deploys as a static export
+to GitHub Pages or any CDN.

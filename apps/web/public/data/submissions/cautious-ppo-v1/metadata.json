@@ -1,0 +1,19 @@
+{
+  "benchmark_version": "1.0.0",
+  "submission_id": "cautious-ppo-v1",
+  "submission_name": "Cautious PPO",
+  "agent_id": "cautious",
+  "team_name": "Abyssal Benchmark (baseline)",
+  "author_name": "Benchmark Team",
+  "contact": "benchmark@example.com",
+  "institution": "Abyssal Embodied Benchmark",
+  "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
+  "commit_hash": "abc1234def5",
+  "algorithm_family": "ppo",
+  "observation_type": "uncertainty",
+  "training_notes": "PPO variant with uncertainty-augmented observations (41-dim: standard 38 + 3 uncertainty channels). Trained to be conservative under degradation — penalises collisions more heavily (collision penalty ×2). Higher success rate under heavy degradation compared to standard PPO.",
+  "model_size": "~135k params (2-layer MLP, wider first layer for extra obs dims)",
+  "hardware_notes": "CPU only",
+  "license": "MIT",
+  "submission_status": "verified"
+}

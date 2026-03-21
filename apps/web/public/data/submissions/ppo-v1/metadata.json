@@ -1,0 +1,19 @@
+{
+  "benchmark_version": "1.0.0",
+  "submission_id": "ppo-v1",
+  "submission_name": "PPO Baseline",
+  "agent_id": "ppo",
+  "team_name": "Abyssal Benchmark (baseline)",
+  "author_name": "Benchmark Team",
+  "contact": "benchmark@example.com",
+  "institution": "Abyssal Embodied Benchmark",
+  "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
+  "commit_hash": "abc1234def5",
+  "algorithm_family": "ppo",
+  "observation_type": "standard",
+  "training_notes": "PPO baseline trained with 38-dimensional standard observations (position, heading, goal direction, rangefinders, collision flag). 500k environment steps. Clipped surrogate objective, GAE-lambda advantage estimation.",
+  "model_size": "~120k params (2-layer MLP)",
+  "hardware_notes": "CPU only",
+  "license": "MIT",
+  "submission_status": "verified"
+}

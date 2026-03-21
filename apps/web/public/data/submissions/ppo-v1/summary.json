@@ -1,0 +1,27 @@
+{
+  "submission_id": "ppo-v1",
+  "agent_id": "ppo",
+  "benchmark_version": "1.0.0",
+  "world_seed": 42,
+  "n_episodes": 5,
+  "presets": {
+    "clear": {
+      "success_rate": 0.68,
+      "collision_rate": 0.14,
+      "timeout_rate": 0.18,
+      "mean_reward": 11.2,
+      "mean_final_dist": 0.21,
+      "mean_steps": 187.4,
+      "n_episodes": 5
+    },
+    "heavy": {
+      "success_rate": 0.44,
+      "collision_rate": 0.22,
+      "timeout_rate": 0.34,
+      "mean_reward": 6.8,
+      "mean_final_dist": 0.38,
+      "mean_steps": 224.1,
+      "n_episodes": 5
+    }
+  }
+}

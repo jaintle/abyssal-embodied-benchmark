@@ -1,0 +1,19 @@
+{
+  "benchmark_version": "1.0.0",
+  "submission_id": "heuristic-v1",
+  "submission_name": "Heuristic Baseline",
+  "agent_id": "heuristic",
+  "team_name": "Abyssal Benchmark (baseline)",
+  "author_name": "Benchmark Team",
+  "contact": "benchmark@example.com",
+  "institution": "Abyssal Embodied Benchmark",
+  "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
+  "commit_hash": "abc1234def5",
+  "algorithm_family": "heuristic",
+  "observation_type": "standard",
+  "training_notes": "Goal-directed heuristic. No learning. Computes forward thrust and yaw torque analytically from goal direction and nearest rangefinder readings. Simple but interpretable — useful as a sanity-check reference and lower bound for trained policies.",
+  "model_size": "0 params (analytic)",
+  "hardware_notes": "CPU only, <1ms per step",
+  "license": "MIT",
+  "submission_status": "verified"
+}

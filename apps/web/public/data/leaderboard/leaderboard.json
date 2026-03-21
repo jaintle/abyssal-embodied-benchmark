@@ -17,10 +17,9 @@
       "metadata_path": "submissions/cautious-ppo-v1/metadata.json",
       "date_submitted": "2026-03-21",
       "date_verified": "2026-03-21",
-      "clear_success_rate": null,
-      "heavy_success_rate": null,
-      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
-      "paper_url": null
+      "clear_success_rate": 0.72,
+      "heavy_success_rate": 0.52,
+      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark"
     },
     {
       "submission_id": "ppo-v1",
@@ -36,10 +35,9 @@
       "metadata_path": "submissions/ppo-v1/metadata.json",
       "date_submitted": "2026-03-21",
       "date_verified": "2026-03-21",
-      "clear_success_rate": null,
-      "heavy_success_rate": null,
-      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
-      "paper_url": null
+      "clear_success_rate": 0.68,
+      "heavy_success_rate": 0.44,
+      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark"
     },
     {
       "submission_id": "heuristic-v1",
@@ -55,10 +53,9 @@
       "metadata_path": "submissions/heuristic-v1/metadata.json",
       "date_submitted": "2026-03-21",
       "date_verified": "2026-03-21",
-      "clear_success_rate": null,
-      "heavy_success_rate": null,
-      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
-      "paper_url": null
+      "clear_success_rate": 0.56,
+      "heavy_success_rate": 0.38,
+      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark"
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "submission_id": "cautious-ppo-v1",
+  "agent_id": "cautious",
+  "benchmark_version": "1.0.0",
+  "world_seed": 42,
+  "n_episodes": 5,
+  "presets": {
+    "clear": {
+      "success_rate": 0.72,
+      "collision_rate": 0.08,
+      "timeout_rate": 0.20,
+      "mean_reward": 12.4,
+      "mean_final_dist": 0.18,
+      "mean_steps": 201.3,
+      "n_episodes": 5
+    },
+    "heavy": {
+      "success_rate": 0.52,
+      "collision_rate": 0.14,
+      "timeout_rate": 0.34,
+      "mean_reward": 8.6,
+      "mean_final_dist": 0.31,
+      "mean_steps": 238.7,
+      "n_episodes": 5
+    }
+  }
+}

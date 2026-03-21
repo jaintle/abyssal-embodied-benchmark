@@ -16,7 +16,8 @@ export default function BenchmarkPage() {
     <div
       style={{
         width: "100vw",
-        height: "100vh",
+        height: "calc(100vh - 36px)",
+        marginTop: 36,
         background: "#020a12",
         overflow: "hidden",
         position: "relative",
