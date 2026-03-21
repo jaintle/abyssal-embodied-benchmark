@@ -8,6 +8,12 @@ The Abyssal benchmark evaluates embodied navigation agents in a deterministic
 procedural underwater world.  Multiple agents are compared on the **identical**
 set of episode seeds.  Results are saved as a structured artifact bundle.
 
+Unlike pixel-based navigation benchmarks, Abyssal intentionally corrupts
+structured observations rather than rendered images. This isolates the effect
+of perception uncertainty on downstream decision-making, allowing controlled
+robustness comparisons across policy classes without confounding representation
+learning effects.
+
 ---
 
 ## Identical Seed Comparison Rule

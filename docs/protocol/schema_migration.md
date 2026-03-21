@@ -12,6 +12,9 @@ The benchmark contract version is defined in three canonical locations that must
 
 `replay_export.py` and `benchmark_runner.py` import this version into every artifact they write.
 
+Strict schema versioning is used to prevent leaderboard drift and to preserve
+scientific comparability of benchmark results across time.
+
 ---
 
 ## What the version covers

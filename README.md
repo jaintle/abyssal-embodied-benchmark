@@ -11,6 +11,28 @@ Live demo: [abyssal-embodied-benchmark on GitHub Pages](https://janintle.github.
 
 ---
 
+## Research Motivation
+
+Real-world embodied agents must operate under perception uncertainty,
+partial observability, and sensor degradation.
+
+Abyssal is designed to study how navigation policies behave when structured
+state information becomes unreliable — a proxy for real-world deployment
+conditions such as turbidity, occlusion, sensing dropout, and noisy state
+estimation.
+
+The benchmark focuses not on raw navigation performance alone, but on the
+robustness of decision-making under controlled degradation.
+
+This makes the environment relevant for:
+
+- Safe reinforcement learning for robotics
+- Sim-to-real robustness evaluation
+- Perception-aware policy learning
+- Decision-making under uncertainty in embodied systems
+
+---
+
 ## What this benchmark measures
 
 - **Goal-reaching success rate** — fraction of episodes where the agent reaches the target zone
@@ -266,11 +288,6 @@ interactively — without running any Python.
 3. Click **LOAD REPLAYS** — `.jsonl` files are fetched from `public/data/submissions/`
 4. Trajectories play back in the 3D scene with synchronized scrubber controls
 
-```bash
-# Generate demo replay files (5 episodes × 3 agents × 2 presets)
-python python/benchmark/scripts/gen_sample_data.py
-```
-
 For real agents, use `evaluate_submission.py` then `publish_submission.py`
 to populate `apps/web/public/data/submissions/<id>/replays/`.
 
@@ -331,6 +348,11 @@ See [`docs/submissions/submission_spec.md`](docs/submissions/submission_spec.md)
 for the full bundle specification and
 [`docs/submissions/adapter_spec.md`](docs/submissions/adapter_spec.md) for the
 adapter contract.
+
+We actively invite submissions of new agent classes, including diffusion
+policies, model-predictive planners, vision-based controllers, and uncertainty-
+aware reinforcement learning agents. Verified submissions are featured on the
+public leaderboard together with replayable evaluation artifacts.
 
 ---
 

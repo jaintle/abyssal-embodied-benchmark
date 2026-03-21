@@ -52,6 +52,10 @@ Performance panel → Record a 3-second trace.
 
 The HUD colour-codes FPS: green ≥ 55, amber 30–54, red < 30.
 
+Keeping the benchmark lightweight enough to run at interactive frame rates on
+mid-range laptops lowers the barrier for academic replication, classroom use,
+and rapid experimentation in resource-constrained research settings.
+
 ---
 
 ## Recorded audit result

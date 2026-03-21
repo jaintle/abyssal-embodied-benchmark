@@ -5,6 +5,11 @@
 This document characterises how the three degradation presets (`clear`, `mild`,
 `heavy`) affect agent performance and what benchmark validity claims they support.
 
+The current degradation model is intentionally abstract and lightweight. The
+same conceptual corruption process can later be extended to pixel observations,
+depth sensing, or learned state estimators, enabling continuity with more
+visually realistic embodied AI benchmarks.
+
 ---
 
 ## Degradation Mechanisms

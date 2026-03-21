@@ -146,6 +146,11 @@ See `docs/submissions/submission_spec.md` and `docs/submissions/adapter_spec.md`
 for the full submission and adapter specifications. The `submissions/TEMPLATE/`
 directory contains a ready-to-copy starter bundle.
 
+Abyssal is intended as a lightweight experimental substrate for studying
+robustness of embodied policies before transferring to higher-fidelity
+simulators such as Unreal Engine, Isaac Sim, or Habitat. By isolating perception
+uncertainty effects in a controllable environment, the benchmark enables rapid
+iteration on policy design and evaluation methodology.
 
 ---
 
