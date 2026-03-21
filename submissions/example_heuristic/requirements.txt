@@ -1,0 +1,2 @@
+# No additional dependencies beyond abyssal-benchmark core requirements.
+# The heuristic adapter uses only numpy and the benchmark base class.

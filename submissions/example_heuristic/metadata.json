@@ -1,0 +1,27 @@
+{
+  "submission_name": "Goal-Directed Heuristic Baseline",
+  "submission_id": "example-heuristic-v1",
+  "agent_id": "example-heuristic",
+
+  "team_name": "Abyssal Benchmark",
+  "author_name": "Abyssal Maintainers",
+  "contact": "benchmark@example.com",
+  "institution": null,
+
+  "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
+  "commit_hash": "phase-b-example",
+  "paper_url": null,
+
+  "benchmark_version": "1.0.0",
+
+  "algorithm_family": "heuristic",
+  "observation_type": "standard",
+  "training_notes": "Rule-based agent. No training. Drives full thrust toward the goal vector in the observation. No obstacle avoidance. Serves as the above-random speed upper bound baseline.",
+
+  "model_size": null,
+  "hardware_notes": null,
+
+  "license": "MIT",
+
+  "submission_status": "provisional"
+}
