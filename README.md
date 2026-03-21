@@ -9,6 +9,8 @@ perception degradation.
 
 Live demo: [abyssal-embodied-benchmark on GitHub Pages](https://jaintle.github.io/abyssal-embodied-benchmark/) · [Leaderboard](https://jaintle.github.io/abyssal-embodied-benchmark/leaderboard/) · [Replay Arena](https://jaintle.github.io/abyssal-embodied-benchmark/replays/)
 
+![Benchmark viewer — four agents replaying simultaneously under the clear preset. The goal marker (white sphere on pole) is visible at the far left; the scrubber shows step 0–140.](docs/assets/screenshot_benchmark.png)
+
 ---
 
 ## Research Motivation
@@ -276,6 +278,8 @@ filtering, and per-submission detail inspection.
 Clicking any row opens a detail panel with full metadata, training notes, and
 per-preset metrics. From there you can jump directly to the Replay Arena.
 
+![Public leaderboard showing three verified official baselines. The Cautious PPO detail panel is open, displaying per-preset success rate, collision rate, mean reward, and distance-to-goal metrics.](docs/assets/screenshot_leaderboard.png)
+
 ---
 
 ## Replay Arena
@@ -290,6 +294,8 @@ interactively — without running any Python.
 
 For real agents, use `evaluate_submission.py` then `publish_submission.py`
 to populate `apps/web/public/data/submissions/<id>/replays/`.
+
+![Replay Arena comparing Cautious PPO (yellow) and PPO Baseline (blue) under the heavy degradation preset. The foggy render reflects reduced visibility; the scrubber shows the episode paused mid-trajectory at step 72 of 490.](docs/assets/screenshot_replay_arena.png)
 
 ---
 
