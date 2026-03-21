@@ -129,3 +129,19 @@ The benchmark will be extended in future versions. Extension points are
 designed in from the start: the agent adapter interface accepts any `predict()`
 implementation, the degradation preset system is parameterised and extensible,
 and the replay schema is versioned.
+
+---
+
+## External agent submissions
+
+The benchmark is designed to accept community submissions. Any agent that
+satisfies the `BenchmarkAgent` adapter contract and is evaluated under the
+official protocol can be submitted for leaderboard inclusion.
+
+Submission artifacts are version-stamped (`benchmark_version: "1.0.0"`),
+include a formal `metadata.json` validated against a Pydantic/Zod schema, and
+enter with status `provisional` until a maintainer performs an official re-run.
+
+See `docs/submissions/submission_spec.md` and `docs/submissions/adapter_spec.md`
+for the full submission and adapter specifications. The `submissions/TEMPLATE/`
+directory contains a ready-to-copy starter bundle.

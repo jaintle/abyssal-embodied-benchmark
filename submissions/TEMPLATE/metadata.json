@@ -1,0 +1,27 @@
+{
+  "submission_name": "YOUR AGENT NAME — e.g. Cautious PPO v2",
+  "submission_id": "your-agent-v1",
+  "agent_id": "your-agent",
+
+  "team_name": "Your Lab Name",
+  "author_name": "Your Full Name",
+  "contact": "you@example.com",
+  "institution": "Your University or Company (optional)",
+
+  "repo_url": "https://github.com/your-username/your-repo",
+  "commit_hash": "abc1234",
+  "paper_url": null,
+
+  "benchmark_version": "1.0.0",
+
+  "algorithm_family": "ppo",
+  "observation_type": "standard",
+  "training_notes": "PPO trained for 200k steps on the clear preset with default hyperparameters. No reward shaping beyond the built-in goal/collision signal.",
+
+  "model_size": null,
+  "hardware_notes": null,
+
+  "license": "MIT",
+
+  "submission_status": "provisional"
+}

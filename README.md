@@ -246,10 +246,59 @@ Press **P** in the browser to toggle the live performance HUD (FPS / draw calls
 
 ---
 
+## Community Submissions
+
+Abyssal is an open benchmark. External researchers can submit agents for
+inclusion in the public leaderboard.
+
+**What you can submit:** any agent that implements the `BenchmarkAgent` adapter
+interface and is evaluated using the official `run_benchmark.py` script at
+`benchmark_version = "1.0.0"`.
+
+**Submission status model:**
+
+| Status | Meaning |
+|--------|---------|
+| `provisional` | Submitted artifacts accepted; awaiting official re-run. |
+| `verified` | Benchmark re-run confirmed by a maintainer. Results are authoritative. |
+| `rejected` | Incompatible or invalid; not shown on the public leaderboard. |
+
+**Getting started:**
+
+```bash
+# 1. Copy the template
+cp -r submissions/TEMPLATE submissions/my-agent-v1
+
+# 2. Implement your adapter
+#    → submissions/my-agent-v1/adapter.py
+
+# 3. Fill in metadata
+#    → submissions/my-agent-v1/metadata.json
+
+# 4. Run the benchmark, place artifacts, then validate
+source .venv/bin/activate
+export PYTHONPATH=$PWD/python/benchmark/src
+
+python python/benchmark/scripts/validate_submission_metadata.py \
+    submissions/my-agent-v1/metadata.json
+
+python python/benchmark/scripts/validate_submission_bundle.py \
+    submissions/my-agent-v1/
+```
+
+See [`docs/submissions/submission_spec.md`](docs/submissions/submission_spec.md)
+for the full bundle specification and
+[`docs/submissions/adapter_spec.md`](docs/submissions/adapter_spec.md) for the
+adapter contract.
+
+---
+
 ## Docs
 
 - [`docs/protocol/benchmark_v1.md`](docs/protocol/benchmark_v1.md) — full benchmark protocol and metrics
 - [`docs/product/overview.md`](docs/product/overview.md) — design philosophy and research context
+- [`docs/submissions/submission_spec.md`](docs/submissions/submission_spec.md) — external submission bundle specification
+- [`docs/submissions/adapter_spec.md`](docs/submissions/adapter_spec.md) — agent adapter contract
 - [`docs/protocol/schema_migration.md`](docs/protocol/schema_migration.md) — replay schema versioning
 - [`docs/protocol/performance_audit.md`](docs/protocol/performance_audit.md) — renderer performance audit
 - [`docs/experiment_log.md`](docs/experiment_log.md) — curated run history

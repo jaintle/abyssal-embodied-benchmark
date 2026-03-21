@@ -1,4 +1,4 @@
-"""Benchmark data contract schemas (world spec + replay)."""
+"""Benchmark data contract schemas (world spec, replay, submissions, leaderboard)."""
 
 from .world_spec import (
     BENCHMARK_VERSION,
@@ -20,6 +20,18 @@ from .replay_schema import (
     replay_to_jsonl_file,
     validate_replay_file,
 )
+from .submission_metadata import (
+    AlgorithmFamily,
+    ObservationType,
+    SubmissionMetadata,
+    SubmissionStatus,
+    validate_submission_metadata,
+)
+from .leaderboard import (
+    LeaderboardEntry,
+    LeaderboardManifest,
+    validate_leaderboard_manifest,
+)
 
 __all__ = [
     # world_spec
@@ -40,4 +52,14 @@ __all__ = [
     "replay_to_jsonl_file",
     "replay_from_jsonl_file",
     "validate_replay_file",
+    # submission_metadata
+    "AlgorithmFamily",
+    "ObservationType",
+    "SubmissionMetadata",
+    "SubmissionStatus",
+    "validate_submission_metadata",
+    # leaderboard
+    "LeaderboardEntry",
+    "LeaderboardManifest",
+    "validate_leaderboard_manifest",
 ]

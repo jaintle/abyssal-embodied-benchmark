@@ -1,0 +1,13 @@
+# requirements.txt — additional dependencies for this submission adapter
+#
+# List any Python packages needed by adapter.py that are not already in
+# python/benchmark/requirements.txt.
+#
+# Use >= version pins where possible.
+# Leave empty if this adapter has no extra dependencies.
+#
+# Example:
+#   stable-baselines3>=2.0
+#   torch>=2.0
+
+# (no additional dependencies for the template adapter)
