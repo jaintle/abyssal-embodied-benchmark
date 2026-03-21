@@ -218,6 +218,10 @@ export default function ReplayArena() {
   const [seekVersion, setSeekVersion] = useState(0);
   const [seekToStep, setSeekToStep] = useState(0);
 
+  // Tracks whether a successful load has occurred — used to decide whether a
+  // config change should trigger a reset.
+  const hasLoadedRef = useRef(false);
+
   // ── Load manifest on mount ─────────────────────────────────────────────────
   useEffect(() => {
     loadLeaderboardManifest().then((result) => {
@@ -276,6 +280,28 @@ export default function ReplayArena() {
     });
   }, [selectedIds, allEntries]);
 
+  // ── Reset playback when selection config changes ──────────────────────────
+  // If the user changes preset, episode, or agent selection while a replay is
+  // loaded, pause immediately, jump to step 0, and clear the stale trajectory
+  // so the canvas doesn't keep showing old data. The user must click LOAD
+  // REPLAYS again to see the new configuration.
+  useEffect(() => {
+    if (!hasLoadedRef.current) return; // nothing loaded yet — no reset needed
+    setPlaying(false);
+    setCurrentStep(0);
+    setSeekVersion((v) => v + 1);
+    setSeekToStep(0);
+    setSlots((prev) => {
+      const next: Record<string, AgentSlot> = {};
+      for (const [id, slot] of Object.entries(prev)) {
+        next[id] = { ...slot, replay: null };
+      }
+      return next;
+    });
+    hasLoadedRef.current = false;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preset, episodeIdx, selectedIds]);
+
   // ── Compute available presets and episodes ────────────────────────────────
   const firstSummary = selectedIds.length > 0 ? (slots[selectedIds[0]]?.summary ?? null) : null;
   const presets = useMemo(() => availablePresets(firstSummary), [firstSummary]);
@@ -283,21 +309,26 @@ export default function ReplayArena() {
   const episodes = useMemo(() => availableEpisodeIndices(episodeCount), [episodeCount]);
 
   // ── Toggle agent selection ────────────────────────────────────────────────
+  // Note: resetting playback on agent change is handled by the config-change
+  // effect that watches selectedIds — no need to duplicate it here.
   function toggleAgent(id: string) {
     setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= MAX_SELECTED) return [...prev.slice(1), id];
       return [...prev, id];
     });
-    setPlaying(false);
-    setCurrentStep(0);
   }
 
   // ── Load replays ──────────────────────────────────────────────────────────
   async function loadReplays() {
     setPlaying(false);
     setCurrentStep(0);
+    setSeekVersion((v) => v + 1);
+    setSeekToStep(0);
     setPlaybackKey((k) => k + 1);
+    hasLoadedRef.current = false;
+
+    let anySuccess = false;
 
     for (const id of selectedIds) {
       const entry = allEntries.find((e) => e.submission_id === id);
@@ -314,6 +345,7 @@ export default function ReplayArena() {
       }));
 
       const result = await loadSubmissionReplay(entry.replay_path, preset, episodeIdx);
+      if (result.success) anySuccess = true;
 
       setSlots((prev) => ({
         ...prev,
@@ -325,6 +357,9 @@ export default function ReplayArena() {
         },
       }));
     }
+
+    // Mark as loaded so future config changes know to reset.
+    if (anySuccess) hasLoadedRef.current = true;
   }
 
   // ── Build comparison agents ───────────────────────────────────────────────
