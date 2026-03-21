@@ -188,7 +188,7 @@ export default function LeaderboardPage() {
           <strong style={{ color: "#4ab8ff" }}>SUBMIT YOUR AGENT</strong>
           {"  "}See{" "}
           <a
-            href="https://github.com/janintle/abyssal-embodied-benchmark/blob/main/docs/submissions/how_to_submit.md"
+            href="https://github.com/jaintle/abyssal-embodied-benchmark/blob/main/docs/submissions/how_to_submit.md"
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: "#4ab8ff" }}

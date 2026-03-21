@@ -7,7 +7,7 @@
   "author_name": "Benchmark Team",
   "contact": "benchmark@example.com",
   "institution": "Abyssal Embodied Benchmark",
-  "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark",
+  "repo_url": "https://github.com/jaintle/abyssal-embodied-benchmark",
   "commit_hash": "abc1234def5",
   "algorithm_family": "heuristic",
   "observation_type": "standard",

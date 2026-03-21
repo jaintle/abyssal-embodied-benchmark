@@ -19,7 +19,7 @@
       "date_verified": "2026-03-21",
       "clear_success_rate": 0.72,
       "heavy_success_rate": 0.52,
-      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark"
+      "repo_url": "https://github.com/jaintle/abyssal-embodied-benchmark"
     },
     {
       "submission_id": "ppo-v1",
@@ -37,7 +37,7 @@
       "date_verified": "2026-03-21",
       "clear_success_rate": 0.68,
       "heavy_success_rate": 0.44,
-      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark"
+      "repo_url": "https://github.com/jaintle/abyssal-embodied-benchmark"
     },
     {
       "submission_id": "heuristic-v1",
@@ -55,7 +55,7 @@
       "date_verified": "2026-03-21",
       "clear_success_rate": 0.56,
       "heavy_success_rate": 0.38,
-      "repo_url": "https://github.com/janintle/abyssal-embodied-benchmark"
+      "repo_url": "https://github.com/jaintle/abyssal-embodied-benchmark"
     }
   ]
 }

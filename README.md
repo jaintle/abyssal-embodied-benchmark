@@ -7,7 +7,7 @@ with reproducible agent evaluation. Agents are trained offline and visualised
 interactively in the browser through replayable trajectories under controlled
 perception degradation.
 
-Live demo: [abyssal-embodied-benchmark on GitHub Pages](https://janintle.github.io/abyssal-embodied-benchmark)
+Live demo: [abyssal-embodied-benchmark on GitHub Pages](https://jaintle.github.io/abyssal-embodied-benchmark/) · [Leaderboard](https://jaintle.github.io/abyssal-embodied-benchmark/leaderboard/) · [Replay Arena](https://jaintle.github.io/abyssal-embodied-benchmark/replays/)
 
 ---
 
@@ -49,7 +49,7 @@ Prerequisites: **Node 18+**, **Python 3.10+**, **pip**
 
 ```bash
 # 1. Clone and install web dependencies
-git clone https://github.com/your-username/abyssal-embodied-benchmark.git
+git clone https://github.com/jaintle/abyssal-embodied-benchmark.git
 cd abyssal-embodied-benchmark && npm install
 
 # 2. Install Python dependencies
